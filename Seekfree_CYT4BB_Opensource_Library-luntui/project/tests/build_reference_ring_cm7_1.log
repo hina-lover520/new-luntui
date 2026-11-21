@@ -1,0 +1,153 @@
+
+     IAR Command Line Build Utility V9.2.2.10770
+     Copyright 2002-2023 IAR Systems AB.
+
+
+cyt4bb7_cm_7_1 - Debug
+Reading project nodes...
+
+Cleaning... 130 files.
+flycontrol.c
+D:\CYT4BB7_Library-master\CYT4BB7_Library-master\Seekfree_luntui\Seekfree_CYT4BB_Opensource_Library-luntui\project\code\flycontrol.c(84) : Warning[Pe177]: variable "yyy" was declared but never referenced
+find.c
+D:\CYT4BB7_Library-master\CYT4BB7_Library-master\Seekfree_luntui\Seekfree_CYT4BB_Opensource_Library-luntui\project\code\find.c(41) : Warning[Pe177]: variable "g_vleft" was declared but never referenced
+D:\CYT4BB7_Library-master\CYT4BB7_Library-master\Seekfree_luntui\Seekfree_CYT4BB_Opensource_Library-luntui\project\code\find.c(42) : Warning[Pe177]: variable "g_vright" was declared but never referenced
+blance.c
+car_control.c
+zf_device_dl1b.c
+zf_device_imu660rb.c
+zf_device_icm20602.c
+seekfree_assistant_interface.c
+zf_device_dl1a.c
+zf_device_imu660rc.c
+zf_device_gnss.c
+zf_device_imu660ra.c
+zf_device_ble6a20.c
+zf_device_ips200.c
+zf_device_imu963ra.c
+zf_device_oled.c
+zf_device_mt9v03x.c
+zf_device_key.c
+zf_device_pmw3901.c
+zf_device_menc15a.c
+zf_device_ips200pro.c
+zf_device_ips114.c
+zf_device_tft180.c
+zf_device_tsl1401.c
+zf_driver_encoder.c
+zf_driver_delay.c
+zf_driver_dma.c
+zf_driver_flash.c
+zf_driver_exti.c
+zf_driver_gpio.c
+zf_device_wifi_uart.c
+zf_device_wireless_uart.c
+zf_driver_adc.c
+zf_driver_timer.c
+zf_driver_spi.c
+zf_driver_uart.c
+zf_driver_soft_iic.c
+cy_syslib_iar.s
+zf_driver_pwm.c
+zf_driver_pit.c
+zf_driver_soft_spi.c
+zf_driver_ipc.c
+zf_device_uart_receiver.c
+zf_device_type.c
+zf_device_wifi_spi.c
+startup_cm7.s
+my_encoder.c
+image.c
+matrix.c
+pid.c
+kaerman.c
+ring_runtime.c
+small_driver_uart_control.c
+quaternion.c
+ztjx.c
+D:\CYT4BB7_Library-master\CYT4BB7_Library-master\Seekfree_luntui\Seekfree_CYT4BB_Opensource_Library-luntui\project\code\ztjx.c(38) : Warning[Pe177]: variable "gyro_offset_roll" was declared but never referenced
+D:\CYT4BB7_Library-master\CYT4BB7_Library-master\Seekfree_luntui\Seekfree_CYT4BB_Opensource_Library-luntui\project\code\ztjx.c(39) : Warning[Pe177]: variable "gyro_offset_pitch" was declared but never referenced
+D:\CYT4BB7_Library-master\CYT4BB7_Library-master\Seekfree_luntui\Seekfree_CYT4BB_Opensource_Library-luntui\project\code\ztjx.c(40) : Warning[Pe177]: variable "gyro_offset_yaw" was declared but never referenced
+D:\CYT4BB7_Library-master\CYT4BB7_Library-master\Seekfree_luntui\Seekfree_CYT4BB_Opensource_Library-luntui\project\code\ztjx.c(98) : Warning[Pe177]: variable "imu660rb_acc_x_l" was declared but never referenced
+D:\CYT4BB7_Library-master\CYT4BB7_Library-master\Seekfree_luntui\Seekfree_CYT4BB_Opensource_Library-luntui\project\code\ztjx.c(99) : Warning[Pe177]: variable "imu660rb_acc_y_l" was declared but never referenced
+D:\CYT4BB7_Library-master\CYT4BB7_Library-master\Seekfree_luntui\Seekfree_CYT4BB_Opensource_Library-luntui\project\code\ztjx.c(100) : Warning[Pe177]: variable "imu660rb_acc_z_l" was declared but never referenced
+ring_link.c
+cy_crypto_config.c
+cy_canfd.c
+cy_i2s.c
+cy_cpu.c
+cy_adc.c
+cy_mdma.c
+edd_rx.c
+cy_ethif.c
+edd.c
+cy_pdma.c
+cy_evtgen.c
+cy_gpio.c
+cy_ipc_drv.c
+cy_flash.c
+edd_tx.c
+cy_lvd.c
+cy_ipc_pipe.c
+cy_lin.c
+cy_mcwdt.c
+cy_ipc_sema.c
+cy_scb_common.c
+cy_mpu.c
+cy_scb_ezi2c.c
+cy_prot.c
+cy_scb_i2c.c
+cy_sd_host.c
+cy_smartio.c
+cy_smif.c
+cy_scb_uart.c
+cy_scb_spi.c
+cy_srom.c
+cy_sysreset.c
+cy_syslib.c
+cy_sysreghc.c
+cy_sysrtc.c
+cy_sysclk.c
+cy_sysint.c
+cy_sysflt.c
+cy_syspm.c
+cy_smif_memslot.c
+cy_smif_ver_specific.c
+cy_tcpwm_quaddec.c
+cy_interrupt_map.c
+cy_tcpwm_counter.c
+cy_tcpwm_sr.c
+cy_syswdt.c
+cy_tcpwm.c
+cy_tcpwm_pwm.c
+cy_trigmux.c
+cy_systick.c
+cy_button.c
+cy_smif_s25fs.c
+cy_mw_flash.c
+cy_smif_device_common.c
+cy_smif_s25fl.c
+cy_smif_hb_flash.c
+cy_power.c
+cy_smif_semp.c
+cy_semihosting.c
+cy_dp83867.c
+cy_sw_tmr.c
+cm7_1_isr.c
+zf_common_font.c
+system_tviibh4m_cm7.c
+zf_common_debug.c
+zf_common_function.c
+main_cm7_1.c
+startup.c
+zf_common_clock.c
+zf_common_fifo.c
+zf_common_interrupt.c
+seekfree_assistant.c
+cyt4bb7_cm_7_1.out
+cyt4bb7_cm_7_1.hex
+
+Total number of errors: 0
+Total number of warnings: 9
+Build succeeded
+

@@ -1,0 +1,227 @@
+RUN: route-0; model=legacy-frontal
+PASS: 500 synthetic curved-geometry frame checks, route=0, full lap + exit + events + faults
+RUN: route--1; model=legacy-frontal
+PASS: 500 synthetic curved-geometry frame checks, route=-1, full lap + exit + events + faults
+RUN: route-1; model=legacy-frontal
+PASS: 500 synthetic curved-geometry frame checks, route=1, full lap + exit + events + faults
+RUN: control; model=legacy-frontal
+PASS: ordinary speed unchanged; caps, faults and stale stops apply only to confirmed rings
+RUN: run-buttons; model=legacy-frontal
+PASS: button idle, long start, debounce, chord priority/release, run latch
+RUN: standby-beep; model=legacy-frontal
+PASS: parked NORMAL/COOLDOWN detection beeps once per new event without control ownership
+PASS: startup owns its buzzer; queued/active parked tones cannot leak into startup
+PASS: running acquisition fast1 and genuine successful exit fast2 are emitted once
+RUN: preview; model=legacy-frontal
+PASS: standby recognition beeps once without control; brief dropout does not repeat; start requires fresh confirmation; display toggling preserves control
+RUN: integration; model=legacy-frontal
+PASS: original passthrough/startup, independent motion integration, synthetic curved-image full lap, two event beeps, cooldown, timeout and boot isolation (not a real-camera replay)
+RUN: geometry; model=legacy-frontal
+PASS: ordinary straight does not hand over
+PASS: ordinary one-sided spur without inner bulge does not hand over
+PASS: ordinary one-sided spur without inner bulge does not hand over
+PASS: ordinary cross does not hand over
+PASS: ordinary rectangular dark patch (old false candidate) does not hand over
+PASS: ordinary open hairpin peninsula does not hand over
+PASS: ordinary smooth curve does not hand over
+PASS: ordinary T junction does not hand over
+PASS: ordinary rectangular side bulge is not sufficient ring evidence does not hand over
+PASS: ordinary rectangular side bulge is not sufficient ring evidence does not hand over
+PASS: ordinary T geometry does not hand over
+PASS: ordinary fork without upper return does not hand over
+PASS: ordinary disconnected white patches does not hand over
+PASS: ordinary conflicting ring and through-cross geometry does not hand over
+PASS: mirrored/slanted curved entry and far-cap-outside-image entry
+PASS: ordinary candidate without connected near path does not hand over
+PASS: row-scan work <= 38230 pixel reads/frame; noise stress 0.111 ms/frame on HOST (not MCU timing)
+RUN: field-regressions; model=legacy-frontal
+PASS: far short island observes without beeping/stopping; larger reliable island acquires and persists
+PASS: both side-clipped curved islands acquire without requiring two white branches
+PASS: tangent cold start, side opening, slanted cross and detached flecks leave ordinary control unchanged
+PASS: clipped entry continuously becomes a single-edge orbit; path maintains normal distance from inner edge
+PASS: 463 field-failure geometry regression frames (synthetic, not photo replay)
+RUN: entry-progress; model=legacy-frontal
+PASS: advancing island, short occlusion before row108, retained control, reacquisition and CIRCLE
+PASS: measured tangent of the same island maintains branch; straight lane cannot refresh it
+PASS: fixed island, straight/cross and expired history cannot turn motion into physical entry
+PASS: unknown visual intervals cannot accumulate/revive entry progress on the next fresh frame
+PASS: 157 entry continuity regression frames (synthetic geometry, not field replay)
+RUN: entry-assist; model=legacy-frontal
+PASS: mirrored confirmed entry bridges a current white corridor through 120ms/25deg without inventing branch or entry evidence; 200ms bound expires
+PASS: real evolving arc releases the entry direction as the measured turn reduces/reverses; it cannot re-arm in the same entry
+PASS: continuing strong fixed-island pixels cannot extend the total assist budget or turn supplied yaw into CIRCLE
+PASS: ordinary road, cross and disconnected flecks preserve original error, speed and turn ownership
+PASS: 162 bounded-entry-assist image frames (synthetic, not real-camera replay)
+RUN: entry-assist-safety; model=legacy-frontal
+PASS: ordinary/cross/candidate passthrough; mirrored confirmed-only entry assist; real reverse bend releases force
+PASS: force cannot create branch entry/CIRCLE/exit; time/travel/yaw/unknown/reboot limits end the episode
+PASS: 580 entry-assist safety frames (synthetic geometry, not field replay)
+RUN: slow-progress; model=legacy-frontal
+PASS: mirrored 0/1-row and intermittent progress counts accumulated measured displacement
+PASS: oscillation, retreat, expired/unknown timing, disconnected branch and fixed-image yaw cannot create entry
+PASS: partial current pixels supply no new strong entry credit
+PASS: 1026 slow-entry geometry frames (synthetic, not field replay)
+RUN: seed-continuity; model=legacy-frontal
+PASS: mirrored acquired arcs remain connected beyond the centre seed; unrelated centre roads, cuts and expired history cannot replace them
+PASS: cold ordinary/cross acquisition and original steering passthrough remain unchanged
+PASS: 680 seed-continuity image frames (synthetic, not field replay)
+RUN: branch-follow; model=legacy-frontal
+PASS: current short-edge pixels steer; strong anchor age advances; weak and hold cannot renew or stack lifetimes
+PASS: early entry guide has actual inner-edge support and converges to the unchanged fixed-look error weight
+PASS: partial measurements supply control without advancing CIRCLE or exit confirmation
+PASS: ordinary/cross, opposite or short/reversed edge, unknown clock and original time/yaw/travel limits reject weak continuation
+PASS: 890 branch-follow geometry frames (synthetic, not field replay)
+RUN: yaw-convention; model=legacy-frontal
+PASS: pixel route=-1 -> P/RAW gyro sign=1 -> signed net full lap, sway cancellation and exit
+PASS: pixel route=1 -> P/RAW gyro sign=-1 -> signed net full lap, sway cancellation and exit
+PASS: 762 direction/runtime integration frames (synthetic geometry, not field replay)
+RUN: isolation; model=legacy-frontal
+PASS: strong curved ring survives raw=2; slanted cross and conflicting geometry do not acquire
+PASS: centre jitter does not reverse an observed entry side
+PASS: straight road plus supplied yaw/displacement cannot establish circle following
+PASS: an unchanged island ahead plus supplied motion cannot commit or enter CIRCLE
+PASS: held/predicted paths never provide branch or CIRCLE confirmation
+PASS: short normal-looking slice after actual entry does not cancel a committed car
+PASS: uncommitted normal/cross fallback releases control without false exit or latched stop
+PASS: visual time and frame count expire evidence even while motion timestamp is frozen
+PASS: unknown vdt does not shorten the real 30-second protection deadline
+PASS: opposite-curvature/look branch cannot refresh acquired ring corridor
+PASS: signed full lap, genuine outer opening, tangent exit guide and ordinary-road recovery
+PASS: actual committed path loss retains bounded-stop protection
+PASS: isolated protocol/control; 457 additional synthetic geometry frames
+RUN: disabled; model=legacy-frontal
+PASS: RING_ENABLE=0 preserves ordinary error/state/speed/turn despite injected ring fault
+RUN: uart-protocol; model=legacy-frontal
+PASS: v4 control and prior diagnostic packing preserved; v24 paired version and independent F-window/ready/path diagnostics, 189713 cases
+RUN: uart-fifo; model=legacy-frontal
+E cadence count=17 drop=0
+UART pressure sample: 20501 bytes / 9200 ms, queue=1, drop=0
+UART RDEG pressure sample: 20221 bytes / 9200 ms, queue=1, drop=0
+UART RDEGH pressure sample: 20255 bytes / 9200 ms, queue=1, drop=0
+UART RDEGHJ pressure sample: 19972 bytes / 9200 ms, queue=1, drop=0
+PASS: bounded FIFO 16/64/128, R33/D19/E14/G14, fresh-frame cadence, fair optional admission, bandwidth/backpressure and drops
+RUN: diag-isolation; model=legacy-frontal
+PASS: independent D/E/G/control isolation including v11 assist, delayed/stale/malformed packets, R33/D19/E14/G14 (856 checks)
+RUN: tangent-route; model=tangent-reference
+PASS: 1208 tangent frames, frozen/unknown cannot fabricate departure, direct sway/reverse cannot refund motion budget
+RUN: tangent-topology; model=tangent-reference
+PASS: independently fixed F region y60..70 has mirrored continuous white-road paths at both bounds and every 2-unit sample
+PASS: island side=1, near straight -> far entry -> outer arc -> near/shared -> same far exit
+PASS: island side=-1, near straight -> far entry -> outer arc -> near/shared -> same far exit
+PASS: 2104 moving-camera frames over a shared-straight/world-annulus map (synthetic, not a field replay)
+RUN: tangent-transport; model=tangent-reference
+UART startup delivered within 153 polls, 2464 bytes at FIFO16; H latency measured after startup
+PASS: v36 exit-window binary inputs at385..435deg even without candidate/branch;1500ms limit, reserved event slots, immutable pending chunk and unchanged idle-only upload
+PASS: 23051 v28 reference transport checks: waiting beep/no ownership, H isolation, frozen pixels, ACK/CRC, idle-only wire
+RUN: observed-mouth; model=tangent-reference
+PASS: 3588 observed-mouth frames; cross/clock/jump break confirmation, frozen mouth cannot progress, ENTER straight+45deg/yaw cannot commit
+RUN: observed-geometry; model=tangent-reference
+PASS: 3902 observed geometry frames; CRC-verified actual images, fixed world bend/skew, frozen neck rejects, short sight N/F sequence
+RUN: near-pass; model=tangent-reference
+PASS: 1650 near-pass frames; mirrored clipped wide mouths reach F without narrow corridor, bounded reacquisition, expiry restart, frozen/blank/straight/cross/unknown cannot pass N
+RUN: bottom-pass; model=tangent-reference
+PASS: 88 local real-shape observations; interior bottom passage mirrored; fixed/missing/expired/unrelated boundary denied; actual corner association (not full field replay)
+RUN: far-handover; model=tangent-reference
+PASS: 168 far-handover observations; CRC real shoulders/mirrors, current white paths, evolving local entry, frozen/unknown/N-before-F/false neck rejects, separate ready gate (local synthetic sequence, not field replay)
+RUN: entry-follow; model=tangent-reference
+PASS: 208 entry-follow frames; real shoulder source/mirrors without width proxy, local near-edge white targets, frozen/yaw/ordinary/expired rejects and tangent cannot renew or commit (synthetic local sequences)
+RUN: clipped-portal; model=tangent-reference
+PASS: 168 clipped-portal observations; CRC shoulders, side clipping, feature/path separation, moving local entry, frozen/unknown/N-before-F rejects
+RUN: force-control; model=tangent-reference
+PASS: force final-output/right-left contracts, rate feedback, locked direction, non-renewable time/yaw/travel, release, stale/stop/invalid requests, UART K
+RUN: ring-release; model=tangent-reference
+PASS: production lost branch/total/exit/stale release without lock-stop; original errors/outputs preserved, 1ms one-shot fallback, no stale reacquisition, vision handshake, no fake exit
+RUN: normal-path; model=tangent-reference
+PASS: 20 real-image/mirror normal-centre paths stay white; v19 reverse error reproduced and corrected, finite force handoff keeps measured bend, no recognition/commit/lap credit
+RUN: entry-budget; model=tangent-reference
+PASS: paired 100deg/1500ms/2.5rev F budgets exceed both old limits, independent visual/controller expiration and unknown-time rejection, no fabricated entry or budget renewal
+RUN: timed-maneuver; model=timed-entry-historical-exit-reference
+PASS: configured heading hold then bounded75deg entry, visual outputs including zero/opposite correction at270/359/360/380 pass unchanged,360 exit measurement only, both sides, wrong-way/yaw oscillation cannot finish, rate taper, finite abort without zero, immutable completion, clock wrap and packed feedback
+RUN: timed-vision; model=timed-entry-historical-exit-reference
+PASS: default vision recognition arms without old F gate; configured straight then origin-correct ENTER,75 hands steering to visual PID, absent branch releases without heading lock or false exit, plain cross/straight untouched
+RUN: timed-integration; model=timed-entry-historical-exit-reference
+PASS: side-1 first shared exit pose(0.00,-20.00,-360.02), net360.014deg, locked near/look94/94, ordinary error12 restored
+PASS: default timed full-world side-1:75 hands nonzero path error to original PID, measured CIRCLE/360/shared straight/exit; no angular heading lock
+PASS: side-1 completed exit cannot re-enter/beep/force until15s from first mode entry; fresh detection then arms once
+PASS: side1 first shared exit pose(0.00,-20.00,360.02), net360.014deg, locked near/look94/94, ordinary error12 restored
+PASS: default timed full-world side1:75 hands nonzero path error to original PID, measured CIRCLE/360/shared straight/exit; no angular heading lock
+PASS: side1 completed exit cannot re-enter/beep/force until15s from first mode entry; fresh detection then arms once
+PASS: default paired end-to-end beep -> configured heading hold -> bounded75 with live gyro then measured visual follow; blank frames cannot cause blind360, repeated commands do not reset, K29 motion telemetry, branchless completion releases original outputs without a fake exit, operator/stale releases without ring lock-stop, default standby beep without motion/cold cross isolation
+RUN: entry-speed; model=timed-entry-historical-exit-reference
+PASS: both-side visual approach, immediate deceleration, portal/speed/observation gates, bounded75 handover, cancellation/lost-line no speed surge, zero/stop and ISR release, K29 wire
+RUN: entry-uart-budget; model=timed-entry-historical-exit-reference
+PASS: default K29 + R/D/E/G/H/J, 13052 bytes/9200ms, queue1, drop0; K>=35, per-poll<=128 FIFO writes
+PASS: constrained FIFO backpressure remains bounded and observable
+RUN: reentry15s; model=timed-entry-historical-exit-reference
+PASS:15s from accepted entry, both directions, cancel and temporary standby resets cannot unlock; candidates cannot renew/bank;14999ms blocked,15000ms fresh confirm;second entry re-arms;uint32 wrap;active ring survives expiry;ordinary outputs unchanged
+RUN: lap360-control-guard; model=timed-entry-historical-exit-reference
+PASS: controller accepts visual handoff after75, rejects claimed360 exit at270/358, in-place360 without forward travel, wrong heading; no optional diagnostic dependency; explicit abort and operator stop release unchanged ordinary outputs, no false exit
+RUN: visual-exit-recovery; model=timed-entry-historical-exit-reference
+PASS: visually committed full lap + aligned complete ordinary image exits without mandatory N/F pixels;270/359,uncommitted360,blank,cross,wrong heading,no net forward travel cannot fake exit;handoff returns original error/speed
+RUN: forward-profile; model=timed-entry-historical-exit-reference
+PASS: startup/rise/downshift/cancellation/lost-line/overspeed/stop/wrap/long-poll forward target bounds
+RUN: v29-real-snapshots; model=timed-entry-historical-exit-reference
+PASS: 6 real CRC snapshots, same-frame incoming corridor target and current white support, clipped reference stays unarmed; no route-success claim from sparse images
+RUN: v30-entry-handover; model=timed-entry-historical-exit-reference
+PASS: v30 finite entry retains measured branch evidence across75; plain lane+yaw cannot commit; rotated incoming line remains finite/correct at75/89/90/91/105, both sides
+RUN: yaw-bias-stability; model=timed-entry-historical-exit-reference
+PASS: two stable250ms windows ready at1500ms; noisy/moving/implausible startup rejected; idle recalibration; RUN/standing freeze; true signed100dps preserved; mean continuity; diagnostics/gaps/duplicates/invalid scale/wrap
+RUN: v31-forward-entry; model=timed-entry-historical-exit-reference
+PASS: boot hand-motion bias corrected in standby; stationary/reverse cannot arm; full75 authority with forward motion; collapse suppresses axle spin without zero/negative forward request; both sides and uncalibrated isolation
+RUN: v31-exit-direction; model=timed-entry-historical-exit-reference
+PASS: v31 both sides,180/270 and past360-opposite heading reject exit/beep; full360 straight exit keeps current through corridor and restores ordinary steering;360/15deg guards retained
+RUN: v32-real-paths; model=timed-entry-historical-exit-reference
+PASS: 28 frozen-image/mirror paths; partial measured inner uses checked white tail, failed normal cannot refresh strong history, valid opposite correction survives
+RUN: v32-visual-handover; model=timed-entry-historical-exit-reference
+PASS: v32 finite 300ms visual handover, both directions, zero/opposite and changing visual targets, last delivered output, release/operator bypass, duplicate and capped time, clock wrap, current 1000ms/75deg entry and forward scale
+RUN: v33-selected-exit; model=timed-entry-historical-exit-reference
+PASS: 28 v33 exit geometry/state cases including mirrors; candidate observation never steers early, first exit requires full lap, locked current corridor survives380deg, disconnected or vanished white road is rejected
+RUN: v33-control-exit; model=timed-entry-historical-exit-reference
+PASS: v33 both-side measured first EXIT gates, bounded same-exit continuation beyond375, unified4s and reversal/reset guards, post75 speed-scaled turn with output feedback, optional L isolation
+RUN: v33-exit-uart; model=timed-entry-historical-exit-reference
+PASS: production L15=31 with unchanged R/K/J/E/H layouts, FIFO128 pressure 11383 bytes/9.2s, drop0; NORMAL L silent
+RUN: v33-exit-stale; model=timed-entry-historical-exit-reference
+PASS: unknown capture interval and long fresh-frame gap clear unlatched exit evidence
+RUN: v33-exit-recover; model=timed-entry-historical-exit-reference
+PASS: slow RECOVER keeps bounded blend and shares the original4s exit deadline
+PASS: connected near side roads block ordinary-controller handover; distant islands permit both recovery phases, including mirrors
+RUN: v34-exit-beep; model=timed-entry-historical-exit-reference
+PASS: v34 nonblocking 60/60ms exit pair, original120ms singles, startup ownership, operatorstop cancels pairs/preserves preview, queue and clock wrap
+RUN: v34-exit-uart; model=timed-entry-historical-exit-reference
+UART fair cadence: M=28 K=28 L=29 J=20
+PASS: v34 M16 immediate state events/fair heartbeat, ordinary silent, unchanged K/L/J and bounded FIFO; 28 M, 11693 bytes/9.2s, drop0
+RUN: v34-current-outer; model=timed-entry-historical-exit-reference
+PASS: v34 two real clipped-inner frames and mirrors, four widths, current outside normal path, two-frame identity, persistent measured control, preserved strong-inner history; entry/straight/blank/wide/time/yaw/travel rejected
+RUN: v34-control-exit; model=timed-entry-historical-exit-reference
+PASS: v34 measured both-side final70/50/10deg, explicit request+motion/identity guards, fresh path0 finite finish, positive-forward differential cap, no pre360 success, exactly one fast triple and success pair with normal restoration
+RUN: v34-vision-exit; model=timed-entry-historical-exit-reference
+PASS: mirrored measured exit corridor, bounded missing-road feedback0/1, complete EXIT/RECOVER,376deg latch and359.5deg completed-feedback handover; request clears and cooldown releases; no yaw-only exit
+RUN: v34-publish-control; model=timed-entry-historical-exit-reference
+PASS: v34 prepared315deg current corridor through PRODUCTION vision publish/runtime receive, real gyro final360, feedback-controlled EXIT/RECOVER, COOLDOWN clears request and accepts one success; entry1+exitfound3+success2 exactly once, both sides
+RUN: v35-exit-reacquire; model=timed-entry-historical-exit-reference
+PASS: mirrored measured exit corridor, bounded missing-road feedback0/1, complete EXIT/RECOVER,376deg latch and359.5deg completed-feedback handover; request clears and cooldown releases; no yaw-only exit
+PASS v35: current outgoing road reacquired after >30deg occlusion; wrong heading denied, both sides
+RUN: v35-episode-control; model=timed-entry-historical-exit-reference
+PASS: v35 production vision publish/runtime receive retains committed75deg episode through blank>250ms and ordinary path0, ordinary turn+cap preserved, final315deg corridor forces real360, long-blank360 reacquires aligned exit without force, EXIT/RECOVER/single success with entry1+exitfound3+success2; no-commit/legacy/STOP/stale/30s still release, both sides
+RUN: v35-opening; model=timed-entry-historical-exit-reference
+maximum cached checks=48000
+PASS: v35 cached early opening from290deg, original-heading association and mirrors; no pixel reread or path credit; wrong side, pure ring, straight, cross, disconnected road, uncommitted/stale/incomplete feedback rejected
+RUN: v35-uart-fair; model=timed-entry-historical-exit-reference
+PASS v35 UART fairness: M=0, D=32(max322ms), L=32(max322ms), bytes=11300/9.2s, drop0
+PASS v35 UART fairness: M=31, D=38(max368ms), L=28(max368ms), bytes=11414/9.2s, drop0
+RUN: v36-cropped-exit; model=timed-entry-default-net400
+PASS: v36 cropped current exit corridor400/402/405/410 and mirrors; wrong-heading, stale, disconnected, incomplete, all-white, out-of-window rejected; no pixel reread; cache32000 bound
+RUN: v36-runtime-observe-exit; model=timed-entry-default-net400
+PASS: v36 both-side strict existing uncapped observation preserves ordinary steering, clears entry cap, resumes slew and tracks lap; malformed/unacquired/stale negative caps rejected; actual400/410/429deg history permits bounded correction toward original360,290/350deg EXIT/success denied, with finite motion/identity gates
+RUN: v36-corridor-negatives; model=timed-entry-default-net400
+v36 corridor negative checks=673 failures=0 maximum cached work=4321
+PASS: v36 corridor rejects pure annulus, cross/T, wide, wrong heading, disconnected and noisy maps; cached work bounded without pixel reread or path-state changes
+RUN: v36-net400-runtime; model=timed-entry-default-net400
+PASS: v36 production signed-net400 runtime gate both directions; packet yaw and cumulative travel cannot arm; actual400..430 unlocks bounded correction toward original360; aligned post400 departure,185RPM observe-to-cap reacquisition,46ms endpoint crossing, unaligned no-force rejection, identity/bounds and per-episode reset
+RUN: v36-beep-patterns; model=timed-entry-default-net400
+PASS: v36 entry1/exit-found3/success2 groups each60ms with60ms gaps, ordered queued events exactly6 pulses, wrap, STOP cancels fast events while preserving parked preview, startup ownership
+RUN: v36-beep-runtime; model=timed-entry-default-net400
+PASS: v36 real runtime entryfast1 + acceptedEXITfast3 + successfulENDfast2 exactly once, repeated packets silent, failed release never success-beeps, both sides
+RUN: v36-episode-integration; model=timed-entry-default-net400
+PASS: v36 actualdefault400 bothcore vision/publish/control, uncapped observation, current400 exit locks reverse finite correction to original360, current-road recovery and fast1/3/2 exactly once; prepared entry, synthetic camera and gyro, not field proof
+PASS: 36 user/main/PID/balance/vision/IPM inputs byte-identical to selected baseline

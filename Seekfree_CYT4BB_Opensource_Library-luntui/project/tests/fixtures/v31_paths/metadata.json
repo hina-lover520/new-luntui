@@ -1,0 +1,154 @@
+{
+  "source": "Saved COM9 capture files only; no serial access",
+  "packing": "2820 bytes, 120 rows x188 columns, MSB first",
+  "state": "Static geometry tests. Established association seeds history from the same fixture; not historical hidden state replay.",
+  "fixtures": [
+    {
+      "name": "capture_20261120_154144_473_fd1432_boot_001_epoch_1_image_8_reason_4.bin",
+      "metadata": {
+        "epoch": 1,
+        "id": 8,
+        "frame": 1733,
+        "cmd": 4308,
+        "ms": 94408,
+        "flags": 50398244,
+        "yaw10": -12487,
+        "lap10": 648,
+        "wheel_mrev": 192292,
+        "crc32": 3760192164,
+        "capture_drop": 0,
+        "near_row": 117,
+        "far_row": 69,
+        "cv": 31,
+        "vv": 31
+      },
+      "route": 1
+    },
+    {
+      "name": "capture_20261120_155810_373_14b019_boot_001_epoch_1_image_12_reason_4.bin",
+      "metadata": {
+        "epoch": 1,
+        "id": 12,
+        "frame": 1783,
+        "cmd": 3990,
+        "ms": 87587,
+        "flags": 50398244,
+        "yaw10": -12385,
+        "lap10": 679,
+        "wheel_mrev": 190699,
+        "crc32": 2268939825,
+        "capture_drop": 0,
+        "near_row": 115,
+        "far_row": 65,
+        "cv": 31,
+        "vv": 31
+      },
+      "route": 1
+    },
+    {
+      "name": "capture_20261120_155810_373_14b019_boot_001_epoch_1_image_66_reason_4.bin",
+      "metadata": {
+        "epoch": 1,
+        "id": 66,
+        "frame": 12216,
+        "cmd": 24856,
+        "ms": 543794,
+        "flags": 33620772,
+        "yaw10": -473,
+        "lap10": 71,
+        "wheel_mrev": 1351828,
+        "crc32": 2329880291,
+        "capture_drop": 0,
+        "near_row": 116,
+        "far_row": 72,
+        "cv": 31,
+        "vv": 31
+      },
+      "route": 1
+    },
+    {
+      "name": "capture_20261120_155810_373_14b019_boot_001_epoch_1_image_70_reason_4.bin",
+      "metadata": {
+        "epoch": 1,
+        "id": 70,
+        "frame": 12806,
+        "cmd": 26036,
+        "ms": 569683,
+        "flags": 50398244,
+        "yaw10": -4607,
+        "lap10": 658,
+        "wheel_mrev": 1415955,
+        "crc32": 906599445,
+        "capture_drop": 0,
+        "near_row": 109,
+        "far_row": 69,
+        "cv": 31,
+        "vv": 31
+      },
+      "route": 1
+    },
+    {
+      "name": "capture_20261120_155810_373_14b019_boot_001_epoch_1_image_78_reason_4.bin",
+      "metadata": {
+        "epoch": 1,
+        "id": 78,
+        "frame": 13986,
+        "cmd": 28396,
+        "ms": 621363,
+        "flags": 50398244,
+        "yaw10": -15200,
+        "lap10": 650,
+        "wheel_mrev": 1545615,
+        "crc32": 2925076534,
+        "capture_drop": 0,
+        "near_row": 117,
+        "far_row": 63,
+        "cv": 31,
+        "vv": 31
+      },
+      "route": 1
+    },
+    {
+      "name": "capture_20261120_155810_373_14b019_boot_001_epoch_1_image_100_reason_4.bin",
+      "metadata": {
+        "epoch": 1,
+        "id": 100,
+        "frame": 19414,
+        "cmd": 39252,
+        "ms": 858457,
+        "flags": 50266916,
+        "yaw10": 12676,
+        "lap10": 276,
+        "wheel_mrev": 2125976,
+        "crc32": 2686559399,
+        "capture_drop": 0,
+        "near_row": 113,
+        "far_row": 89,
+        "cv": 31,
+        "vv": 31
+      },
+      "route": -1
+    },
+    {
+      "name": "capture_20261120_155810_373_14b019_boot_001_epoch_1_image_38_reason_4.bin",
+      "metadata": {
+        "epoch": 1,
+        "id": 38,
+        "frame": 7314,
+        "cmd": 15052,
+        "ms": 329481,
+        "flags": 67052596,
+        "yaw10": -4986,
+        "lap10": 1072,
+        "wheel_mrev": 809952,
+        "crc32": 4057158292,
+        "capture_drop": 0,
+        "near_row": 84,
+        "far_row": 57,
+        "cv": 31,
+        "vv": 31
+      },
+      "route": -1
+    }
+  ]
+}

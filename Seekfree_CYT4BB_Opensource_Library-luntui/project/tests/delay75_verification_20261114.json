@@ -1,0 +1,220 @@
+{
+  "date": "2026-11-14",
+  "version": 23,
+  "status": "PASS",
+  "target": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui",
+  "scope": "Ring recognition ->500ms heading hold -> signed75deg gyro turn -> actual visual branch handoff and full360/shared-straight exit. Ordinary tracking unchanged.",
+  "protected_inputs": 581,
+  "primary_inputs": 589,
+  "tests": {
+    "groups": 39,
+    "default_timed_entry": 3,
+    "reference_tangent": 14,
+    "legacy": 22,
+    "host_sha256": "ed26be846a19a5b441ffb62b5e2b72b3a0370ac54c601796f06d3e3548ecc78f",
+    "parser": "PASS"
+  },
+  "builds": [
+    {
+      "core": 0,
+      "errors": 0,
+      "warnings": 0,
+      "shared_symbols": {
+        "ring_command_mailbox": {
+          "address": "0x28001040",
+          "bytes": 32
+        },
+        "ring_motion_mailbox": {
+          "address": "0x28001060",
+          "bytes": 32
+        },
+        "ring_diagnostic_mailbox": {
+          "address": "0x28001080",
+          "bytes": 32
+        },
+        "ring_entry_diagnostic_mailbox": {
+          "address": "0x280010a0",
+          "bytes": 32
+        },
+        "ring_geometry_diagnostic_mailbox": {
+          "address": "0x280010c0",
+          "bytes": 32
+        },
+        "ring_topology_diagnostic_mailbox": {
+          "address": "0x280010e0",
+          "bytes": 32
+        },
+        "ring_image_mailbox": {
+          "address": "0x28001100",
+          "bytes": 128
+        },
+        "ring_image_ack_mailbox": {
+          "address": "0x28001180",
+          "bytes": 32
+        },
+        "ring_mouth_diagnostic_mailbox": {
+          "address": "0x280011a0",
+          "bytes": 32
+        }
+      },
+      "hex_checksums": "PASS",
+      "hex_records": 5164,
+      "outputs": [
+        {
+          "path": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.out",
+          "size": 2049232,
+          "sha256": "768594bd94bdc582a85bb25328ff1397b3cf58c6c33bf1e7daba7ae7da97d1ba"
+        },
+        {
+          "path": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.hex",
+          "size": 232260,
+          "sha256": "03b1dbccb8fcbbfa914e2a0e61e9e2c688664ec1f74fec126467875f32b57d3b"
+        }
+      ]
+    },
+    {
+      "core": 1,
+      "errors": 0,
+      "warnings": 0,
+      "shared_symbols": {
+        "ring_command_mailbox": {
+          "address": "0x28001040",
+          "bytes": 32
+        },
+        "ring_motion_mailbox": {
+          "address": "0x28001060",
+          "bytes": 32
+        },
+        "ring_diagnostic_mailbox": {
+          "address": "0x28001080",
+          "bytes": 32
+        },
+        "ring_entry_diagnostic_mailbox": {
+          "address": "0x280010a0",
+          "bytes": 32
+        },
+        "ring_geometry_diagnostic_mailbox": {
+          "address": "0x280010c0",
+          "bytes": 32
+        },
+        "ring_topology_diagnostic_mailbox": {
+          "address": "0x280010e0",
+          "bytes": 32
+        },
+        "ring_image_mailbox": {
+          "address": "0x28001100",
+          "bytes": 128
+        },
+        "ring_image_ack_mailbox": {
+          "address": "0x28001180",
+          "bytes": 32
+        },
+        "ring_mouth_diagnostic_mailbox": {
+          "address": "0x280011a0",
+          "bytes": 32
+        }
+      },
+      "hex_checksums": "PASS",
+      "hex_records": 3423,
+      "outputs": [
+        {
+          "path": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.out",
+          "size": 2063504,
+          "sha256": "b1d3cdc37a8896328e2735f33ceaadae8a71c86ba0cf6620ae0771b9044591fc"
+        },
+        {
+          "path": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.hex",
+          "size": 153951,
+          "sha256": "84add5983cd9073d441e56412d6d608f6f8b9eb6f8c0f52efc45a6ef00a6db8d"
+        }
+      ]
+    }
+  ],
+  "changes": {
+    "project\\code\\ring.c": {
+      "before": "286af2843827d285eaf68ee8838da2e31f58fd4ef8721b6c0e075f00a015050d",
+      "after": "c56728f3bee3c74d1faa0ace19440e9dd96cb090c8e3dc5ff029e5eadd2efc83"
+    },
+    "project\\code\\ring.h": {
+      "before": "81a65bacc67b7f04431097f3a47fbe4d3fef51d5b8e293d8a39ca90a5abb4241",
+      "after": "b30ad2c0daf3f5aa1a3660b34424cc15fe3e58552a268fa44a6074c97c3b0a36"
+    },
+    "project\\code\\ring_link.h": {
+      "before": "ce3e92494182b4b5df3b3447bdf07e11481d2537997815d295372217f6f305ca",
+      "after": "9c16a64e511f0409a277dc5f2679aa2858e5bbbf2adb8105c7cb1d33eb67d2ab"
+    },
+    "project\\code\\ring_maneuver.h": {
+      "before": null,
+      "after": "420f30d64e4881bb9fee97521e282a403446fa26afcf8c76b28154248008bb39"
+    },
+    "project\\code\\ring_runtime.c": {
+      "before": "493c2a3c850d0fb595409810cfa34dc09ae3569e8873cac7be5a91692b6aab1b",
+      "after": "3cd8d081fd8907031efa2c0fbd039039c771aeb94275109a46314b9324886538"
+    },
+    "project\\code\\ring_runtime.h": {
+      "before": "bdf8a0039e8e5befb9770321aa53889bec560ed8cfff42cfdd54f813e636e7d1",
+      "after": "c10ca08654df2470ef563537241ae5006a41815742d55f2afae1355ffd60b441"
+    },
+    "project\\code\\ring_uart_diag.h": {
+      "before": "91b54d74d51772d3efe54d2238b6cd84dceafbc0e3f03e9006bd69e49c5c45e6",
+      "after": "ae416177bc88081599fdd122e1cd9f263684e69ac6b1c5bf9263418b67d73246"
+    },
+    "project\\code\\ring_vision.c": {
+      "before": "27d59bc6029316c1c9cb8f750ec511f2268ff88534114cad71d03ee962ab6eda",
+      "after": "5acc2370389b4eee6ff7da458c4cbc8e39ec6f3098d8f1fd1bc240dd6fb1924a"
+    },
+    "project\\tests\\run_ring_tests.ps1": {
+      "before": "cef59bcd4c651e9e03b984e8dfd62d026b07f11e5da4bc5ad2cedde875fcdf21",
+      "after": "7422843c479aa2dde2004690ec0b42e1e3bc9e721ed4bc2a79abc9668d632fcc"
+    },
+    "project\\tests\\test_ring_diag_isolation.c": {
+      "before": "8d1b2848be20a952bd328d96d2cfaf507fe7f12a95944f75b7eecd2c766004f4",
+      "after": "0bd37e57b424e31130bb516a8b23b8063f2112c0c8efe93f84a74abc1ae5ea80"
+    },
+    "project\\tests\\test_ring_force.c": {
+      "before": "34afaabb3076a5e4d6929afb87a0d65d37dffaf64a4865d53b761edab39ce7aa",
+      "after": "d00209ad91c3feaeb18cd807e3de1c06a22d964ef72d0a85c05c22b754203766"
+    },
+    "project\\tests\\test_ring_maneuver.c": {
+      "before": null,
+      "after": "925b1d71125d8c38a9d4bb531c85528323ed705202e259789599e3f2d5c80a5e"
+    },
+    "project\\tests\\test_ring_tangent_transport.c": {
+      "before": "c7aee552b47522188c9dab1ffc034d2fcc92436e4852d96ec32d789cd4bcd244",
+      "after": "a893e8a5f8aeade3549fdcb67d1c815df6c42428b9d9f581715c594b45a5e4d7"
+    },
+    "project\\tests\\test_ring_timed_integration.c": {
+      "before": null,
+      "after": "cf6e5bf969edad271c185fe69c4dcfbccfaed20cf32162522c10a3ca605001c5"
+    },
+    "project\\tests\\test_ring_timed_vision.c": {
+      "before": null,
+      "after": "9ad619981297f58bce076148f45f0307b941cb4d41c7b4897f1bdaff0ed982ef"
+    },
+    "project\\tests\\test_ring_uart_fifo.c": {
+      "before": "73c214c51437c4ef6f2d80eada878edd6c2c13e0f8954c12fb83f022930a4012",
+      "after": "c13a6a907a927ad322a3dbbfa59d4de8f289e92e3f733d25528f2f74e47808ce"
+    },
+    "project\\tests\\test_ring_uart_protocol.c": {
+      "before": "ad0eacb852c45fde5cd32cba9c6b2eaf345ca80ddfba2e79724f3afd3e22ca2a",
+      "after": "3f93a93de9ec4de41bc807b59d6811f1f55f427781a56507f91809f5d9c8bcb0"
+    },
+    "readme.md": {
+      "before": "6229326299aed66d77619ef2e90f45dee636f815edceb4d41faf4e5e197957c4",
+      "after": "9460d5b9bbe6e7b748aded09c1bb6e1d41dd10d07cd8cbfcb1d24fe21f194543"
+    },
+    "uart1_ring_diagnostics.md": {
+      "before": "6d364ddf624c29250b49da79caa2c7bf32fbdbc79f73a2f1e67a44e4da42464c",
+      "after": "8e2a35e0590c87d1e67b8b751f43d8462f9f58b39f5d5a37cad12215cb5b0e5e"
+    }
+  },
+  "backup": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\_backup_before_delay75_fix_20261114",
+  "serial": {
+    "port": "COM9",
+    "baud": 115200,
+    "pair": "#PAIR,23,23,1",
+    "serialWrites": 0
+  },
+  "hardware_validation": "Pending. Default paired world-map tests assume500ms reaches the portal; this is not a real vehicle replay or proof of camera timing/dynamics.",
+  "packaging": "Engineering HEX/OUT only; no extra packaging; no flashing"
+}

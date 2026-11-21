@@ -1,0 +1,38 @@
+{
+  "version": 30,
+  "groups": 47,
+  "backup": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\_backup_before_v30_20261120_143507",
+  "changed": [
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring.c",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring.h",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring_link.h",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring_runtime.c",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring_uart_diag.h",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring_vision.c",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\run_ring_tests.ps1",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_diag_isolation.c",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_entry_follow.c",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_entry_speed.c",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_force.c",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_maneuver.c",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_tangent_transport.c",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_timed_integration.c",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_uart_fifo.c",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_uart_protocol.c",
+    "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\readme.md"
+  ],
+  "hex": [
+    {
+      "path": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.hex",
+      "sha256": "a7ad249075e5b37f64647fc696cf72e23e61264497863ee87a292c345dd5f074",
+      "bytes": 234510
+    },
+    {
+      "path": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.hex",
+      "sha256": "ca9101a780ecce0f42fd18b41ebaa17270c629802dc40057296fb8c80a6dc4b8",
+      "bytes": 160521
+    }
+  ],
+  "verified_at": "2026-11-20T14:52:20.563604",
+  "readme_sha256": "5a844f1eb0abe2d06cfdc150f3e05a5185f6977c3c73cb963d92d4921884f572"
+}

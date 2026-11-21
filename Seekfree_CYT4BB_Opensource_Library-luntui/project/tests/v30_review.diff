@@ -1,0 +1,406 @@
+--- before/code\ring.c
++++ after/code\ring.c
+@@ -1272,11 +1272,19 @@
+  * Before departure, compare the CURRENT measured guide with the original
+  * through corridor rotated by measured yaw. A through-lane fit must not
+  * overwrite the side-opening target merely because build_path succeeded. */
++/* Signed distance from the rotated incoming line. The old tan(yaw)
++ * expression flipped at90deg and omitted rotation of the line offset.
++ * No pixel/metre assumption: this is yaw-only geometry in the IPM plane. */
++static float tangent_entry_distance(const ring_motion_t *m)
++{
++    float yaw=(m->yaw_deg-ring_result.lap_origin_yaw)*0.01745329252f;
++    float a=mouth_entry_slope,b=a*119.f+mouth_entry_offset-RING_W/2;
++    float x=ring_result.guide_x-RING_W/2,forward=119-ring_result.guide_y;
++    return ring_result.ring_side*((cosf(yaw)-a*sinf(yaw))*x+
++        (sinf(yaw)+a*cosf(yaw))*forward-b)/sqrtf(1.f+a*a);
++}
+ static int tangent_entry_branch(const ring_motion_t *m)
+ {
+-    float yaw=(m->yaw_deg-ring_result.lap_origin_yaw)*0.01745329252f;
+-    float forward=119-ring_result.guide_y;
+-    float predicted=mouth_entry_slope*ring_result.guide_y+mouth_entry_offset-tanf(yaw)*forward;
+     /* At the beginning of a confirmed F turn the current inner-edge
+      * offset can still describe the incoming straight. Its displaced
+      * learned through reference alone must not grant branch ownership
+@@ -1286,7 +1294,7 @@
+     if(!ring_result.left_entry && ring_result.lap_deg<20.f &&
+        ring_result.ring_side*ring_result.steer_error<RING_ASSIST_TARGET_ERROR) return 0;
+     return ring_result.guide_x>=0 && ring_result.guide_y<RING_NEAR_ROW &&
+-        ring_result.ring_side*(ring_result.guide_x-predicted)>=ring_result.lane_width/4;
++        tangent_entry_distance(m)>=ring_result.lane_width/4;
+ }
+ 
+ /* During the F bend the far row can cross the opening and see the OUTER
+@@ -1356,7 +1364,9 @@
+     int16_t edge[RING_H],predicted[RING_H];
+     int y,first=117,n=0,associated=0,bad=0,moved=0,curved=0,guide;
+     float angle=(m->yaw_deg-mouth_local_yaw)*.01745329252f;
+-    if(!mouth_local_valid || ring_result.phase!=RING_ENTER || ring_result.committed ||
++    if(!mouth_local_valid ||
++       !(ring_result.phase==RING_ENTER || (timed_started && ring_result.phase==RING_CIRCLE &&
++         ring_result.committed && ring_result.approach_stage!=RING_TANGENT_SHARED)) ||
+        vision_ms-mouth_local_ms>RING_OBSERVE_MS ||
+        vision_ms-mouth_local_curve_ms>RING_ASSIST_TOTAL_MS ||
+        fabsf(m->wheel_revs-mouth_local_revs)>RING_ASSIST_ENTRY_REVS ||
+@@ -2008,6 +2018,27 @@
+     return reject==0;
+ }
+ 
++/* Accumulate measured branch departure DURING the finite turn as well
++ * as after it. Gyro progress by itself never earns visual commitment. */
++static void tangent_entry_evidence(const ring_motion_t *m,int measured,int changed)
++{
++    if(ring_result.phase!=RING_ENTER || ring_result.approach_stage==RING_TANGENT_SHARED)return;
++    if(ring_result.timed_entry && tangent_left_count>=(int)RING_BRANCH_CONFIRM)return;
++    if(changed && measured && ring_result.lap_deg>=20.f &&
++       ring_result.guide_x>=0 && ring_result.guide_y<RING_NEAR_ROW &&
++       tangent_entry_distance(m)>=ring_result.lane_width/6) {
++        ring_result.left_entry=1;ring_result.approach_stage=RING_TANGENT_LEFT;
++    }
++    if(measured==1 && changed && ring_result.left_entry && ring_result.lap_deg>=35.f &&
++       fabsf(m->wheel_revs-tangent_lap_revs)>=.1f) {
++        if(tangent_left_count<(int)RING_BRANCH_CONFIRM)++tangent_left_count;
++    } else tangent_left_count=0;
++    if(tangent_left_count>=(int)RING_BRANCH_CONFIRM && !ring_result.timed_entry) {
++        ring_result.committed=1;
++        ring_result.decision=RING_DECISION_COMMIT;change_phase(RING_CIRCLE,m->now_ms);
++    }
++}
++
+ /* Only the finite75deg entry is scheduled. Hand steering to the actual
+  * ring path afterwards, including its ordinary PID. Gyro thereafter only
+  * measures lap progress; it never overrides the path or locks a heading. */
+@@ -2023,9 +2054,12 @@
+     if(ring_result.phase==RING_APPROACH && maneuver_feedback<2u) {
+         int reference=tangent_reference();
+         int portal=tangent_mouth_sequence(island,m,reference,cross);
+-        /* Timed APPROACH command bit means CURRENT portal permit;
+-         * optional diagnostic mailboxes never authorise control. */
+-        ring_result.force_entry=(uint8_t)portal;
++        /* v30: recognition has already confirmed structure and side.
++         * Keep N/F observations for diagnostics/exit; they must not veto
++         * the scheduled entry a second time. Runtime still enforces the
++         * finite delay, forward-speed readiness and fresh RUN command. */
++        (void)portal;
++        ring_result.force_entry=1;
+         ring_result.path_valid=(uint8_t)(reference && tangent_line_path(0));
+         ring_result.branch_ok=0;ring_result.path_source=0;
+         ring_result.decision=RING_DECISION_ASSIST;
+@@ -2044,6 +2078,10 @@
+     }
+     if(maneuver_feedback==3u) {
+         ring_result.timed_entry=0;
++        if(tangent_left_count>=(int)RING_BRANCH_CONFIRM && ring_result.left_entry && have_path &&
++           !seed_identity_lost && m->now_ms-last_path_fault_ms<=RING_PATH_HOLD_MS) {
++            ring_result.committed=1;change_phase(RING_CIRCLE,m->now_ms);
++        }
+         /* Critical: otherwise ring_blend_error() supplies ZERO to the
+          * original PID forever, even when a real branch reports e=61. */
+         return 0;
+@@ -2060,6 +2098,8 @@
+             mouth_local_revs=m->wheel_revs;
+         }
+     }
++    tangent_entry_evidence(m,measured,mouth_signature!=mouth_previous_signature);
++    mouth_previous_signature=mouth_signature;
+     ring_result.branch_ok=(uint8_t)measured;ring_result.path_valid=(uint8_t)measured;
+     ring_result.path_source=(uint8_t)(measured?1:0);
+     ring_result.branch_mode=(uint8_t)(measured?RING_BRANCH_STRONG:RING_BRANCH_NONE);
+@@ -2210,26 +2250,14 @@
+             ((junction || local)?RING_BRANCH_JUNCTION:RING_BRANCH_STRONG));
+         ring_result.decision=RING_DECISION_MEASURED;ring_result.stop=0;
+         tangent_store_path(m,measured==1);ring_result.entry_flags=RING_ENTRY_MEASURED|RING_ENTRY_HISTORY_FRESH;
+-        if(ring_result.phase==RING_ENTER && ring_result.approach_stage!=RING_TANGENT_SHARED) {
+-            float yaw=m->yaw_deg-ring_result.lap_origin_yaw;
++        if(ring_result.phase<=RING_CIRCLE && ring_result.approach_stage!=RING_TANGENT_SHARED &&
++           !junction && !visual_exit_count) {
+             if(measured==1) {
+                 memcpy(mouth_local_edge,inner,sizeof(inner));mouth_local_valid=1;
+                 mouth_local_ms=mouth_local_curve_ms=vision_ms;mouth_local_yaw=m->yaw_deg;
+                 mouth_local_revs=m->wheel_revs;
+             }
+-            float predicted=mouth_entry_slope*ring_result.guide_y+mouth_entry_offset-
+-                tanf(yaw*0.01745329252f)*(119-ring_result.guide_y);
+-            if(visual_changed && ring_result.lap_deg>=20.0f &&
+-               ring_result.ring_side*(ring_result.guide_x-predicted)>=ring_result.lane_width/6) {
+-                ring_result.left_entry=1;ring_result.approach_stage=RING_TANGENT_LEFT;
+-            }
+-            if(measured==1 && visual_changed && ring_result.left_entry && ring_result.lap_deg>=35.0f &&
+-               fabsf(m->wheel_revs-tangent_lap_revs)>=0.1f) ++tangent_left_count;
+-            else tangent_left_count=0;
+-            if(tangent_left_count>=(int)RING_BRANCH_CONFIRM) {
+-                ring_result.committed=1;ring_result.decision=RING_DECISION_COMMIT;
+-                change_phase(RING_CIRCLE,now); /* The F lap origin is unchanged. */
+-            }
++            tangent_entry_evidence(m,measured,visual_changed);
+         }
+         if(ring_result.phase>=RING_EXIT) {
+             if(now-phase_since>RING_EXIT_TIMEOUT_MS) {ring_release_control(3,m);return;}
+@@ -2442,7 +2470,8 @@
+             mouth_seed(&mouth_near,ring_result.ring_side>0?island.left:island.right,island.bottom,m->yaw_deg);
+             tangent_reference();ring_result.steer_error=0;
+             if(RING_TIMED_ENTRY){
+-                ring_result.timed_entry=1;timed_started=0;maneuver_feedback=0;maneuver_turn10=0;
++                ring_result.timed_entry=1;ring_result.force_entry=1;
++                timed_started=0;maneuver_feedback=0;maneuver_turn10=0;
+                 have_path=0;seed_left=seed_right=seed_x=seed_inner=-1;
+                 ring_result.path_valid=(uint8_t)(ring_result.mouth_ref && tangent_line_path(0));
+             }
+--- before/code\ring.h
++++ after/code\ring.h
+@@ -82,7 +82,7 @@
+ #define RING_ASSIST_HOLD_MS       200u
+ #define RING_ASSIST_HOLD_YAW_DEG  35.0f
+ #define RING_ASSIST_HOLD_REVS     0.45f
+-/* Recognition -> corridor/deceleration -> observed portal ->75deg -> VISUAL ring follow.
++/* Recognition -> corridor/deceleration -> scheduled75deg -> VISUAL ring follow.
+  * No waits and no ordinary tracking/controller parameter changes. */
+ #ifndef RING_TIMED_ENTRY
+ #define RING_TIMED_ENTRY          1
+@@ -96,7 +96,7 @@
+  * confirm the exit when the pixel N/F tracker has missed a shoulder. */
+ #define RING_LAP_EXIT_HEADING_TOL  15.0f
+ #define RING_VISUAL_EXIT_FRAMES    12u
+-/* Start approach deceleration immediately. A timer alone cannot authorise entry. */
++/* Confirmed entry: delay and measured speed must both be ready before turning. */
+ #define RING_ENTRY_SPEED_SLEW_RPM_S 40.0f
+ #define RING_FORWARD_RISE_RPM_S    35.0f
+ #define RING_FORWARD_FALL_RPM_S    80.0f
+@@ -107,7 +107,7 @@
+ #define RING_TANGENT_CONFIRM      3
+ #define RING_TANGENT_FAR_MIN_ROW  74
+ #define RING_TANGENT_FAR_MAX_ROW  100
+-/* Only a confirmed current F portal may request yaw-rate entry control. */
++/* Confirmed timed entry or a current F portal may request finite yaw-rate control. */
+ #define RING_FORCE_RATE_DPS       100.0f
+ #define RING_FORCE_FEED_RPM       45.0f
+ #define RING_FORCE_RATE_KP        0.35f
+--- before/code\ring_link.h
++++ after/code\ring_link.h
+@@ -7,7 +7,7 @@
+  * array at 0x28001000. Original communication remains untouched. */
+ #define RING_LINK_WORDS 8
+ #define RING_LINK_MAGIC 0x524E4704
+-#define RING_PAIR_VERSION 29u
++#define RING_PAIR_VERSION 30u
+ /* v29 bit27: current portal permit in timed APPROACH; otherwise the
+  * existing non-timed ENTER force request. Never optional telemetry. */
+ #define RING_COMMAND_FORCE_ENTRY (1u << 27)
+--- before/code\ring_runtime.c
++++ after/code\ring_runtime.c
+@@ -577,8 +577,10 @@
+                     now-motion_sample_ms<=150u && measured_forward>=0.f &&
+                     measured_forward<=RING_ENTRY_READY_RPM && entry_speed.valid &&
+                     entry_speed.output<=RING_APPROACH_RPM+5.f;
+-                maneuver.armed=(unsigned)(force_requested && diagnostics.phase==RING_APPROACH &&
+-                    diagnostics.path_valid && motion_ok);
++                /* A confirmed scheduled entry survives temporarily cropped
++                 * N/F pixels. Fresh paired command + speed + RUN remain
++                 * mandatory; the current visual path only guides approach. */
++                maneuver.armed=(unsigned)(force_requested && diagnostics.phase==RING_APPROACH && motion_ok);
+                 maneuver.reason=(unsigned)(force_requested?(motion_ok?1:2):0);
+             }
+             *turn_out=ring_maneuver_apply(&maneuver,*turn_out,now,heading_deg,wheel_revs,heading_rate,
+--- before/code\ring_uart_diag.h
++++ after/code\ring_uart_diag.h
+@@ -140,7 +140,7 @@
+ static void ring_uart_diag_poll(int steer_error, int speed_left, int speed_right)
+ {
+     static const char *const headers[] = {
+-        "#RING,29,UART1,115200,8N1,TX=P04_1,RX=P04_0,CONTROL=4,PAIR=29,IMAGE=IPM,TRACK_MODE="
++        "#RING,30,UART1,115200,8N1,TX=P04_1,RX=P04_0,CONTROL=4,PAIR=29,IMAGE=IPM,TRACK_MODE="
+         RING_DIAG_STRINGIFY(RING_TRACK_MODE) ",YAW_SIGN="
+         RING_DIAG_STRINGIFY(RING_YAW_SIGN) "\r\n",
+         "#seq,ms,dt,loop,ph,dir,raw,out,cand,xv,cm,pv,stop,f,act,e,sel,near,deg,cap,br,ba,v0,v1,u0,u1,L,R,age,w,det,exit,drop\r\n",
+@@ -160,7 +160,7 @@
+         RING_DIAG_STRINGIFY(RING_REENTRY_BLOCK_MS) "\r\n",
+         "#LAP,MIN_DEG=" RING_DIAG_STRINGIFY(RING_EXIT_MIN_DEG)
+         ";HEADING_TOL=" RING_DIAG_STRINGIFY(RING_LAP_EXIT_HEADING_TOL)
+-        ";MAN=1:straight|2:entry75|3:visual_follow|4:abort;YAW=EXIT_GATE_ONLY;REM=360-MT;NO_HEADING_LOCK=1\r\n",
++        ";MAN=1:straight|2:entry75|3:visual_follow|4:abort;YAW=EXIT_GATE_ONLY;REM=360-MT;NO_HEADING_LOCK=1;ENTRY=CONFIRMED_DELAY_SPEED;J_GATE=DIAGNOSTIC\r\n",
+         "#S,epoch,id,frame,cmd,ms,flags,yaw10,lap10,wheel_mrev,crc32,capture_drop,near_row,far_row,cv,vv;IMAGE=188x120,MSB,WHITE=1,BYTES=2820\r\n",
+         "#I,epoch,id,offset,hex;EVENT=1:confirmed|2:near_passed|3:enter|4:branch_lost|5:F_first|6:F_progress|7:gate_change|8:approach_cancel;IDLE_ONLY=1\r\n",
+         "#ENTRY_ASSIST,MIN_ERROR=" RING_DIAG_STRINGIFY(RING_ASSIST_MIN_ERROR)
+--- before/code\ring_vision.c
++++ after/code\ring_vision.c
+@@ -43,10 +43,11 @@
+     ring_capture_t *slot;
+     unsigned x,y,index=0; uint32_t flags;
+     if(capture_event_mask&(1u<<reason)) return;
+-    capture_event_mask=(uint16_t)(capture_event_mask|(1u<<reason));
+     if(capture_count==RING_CAPTURE_SLOTS || (!motion.ready && capture_preview_count>=2u) ||
+         (reason>=RING_IMAGE_FAR_CANDIDATE && reason!=RING_IMAGE_APPROACH_CANCEL &&
+          capture_count>=RING_CAPTURE_SLOTS-2u)) { ++capture_dropped;return; }
++    /* Only mark a snapshot delivered to the queue, not a dropped attempt. */
++    capture_event_mask=(uint16_t)(capture_event_mask|(1u<<reason));
+     slot=&captures[(capture_head+capture_count)%RING_CAPTURE_SLOTS];
+     memset(slot,0,sizeof(*slot));
+     for(y=0;y<RING_H;++y) for(x=0;x<RING_W;++x,++index)
+@@ -81,7 +82,9 @@
+         capture_image(image,r,RING_IMAGE_ENTERED);
+     if(r->phase>=RING_ENTER && r->phase<=RING_CIRCLE && !r->branch_ok && capture_previous_branch)
+         capture_image(image,r,RING_IMAGE_BRANCH_LOST);
+-    if(motion.ready && r->phase==RING_APPROACH && r->mouth_far_x>=0 && r->mouth_far_y>=0) {
++    /* Scheduled entry no longer waits on F. Preserve queue capacity for
++     * the turn/first lost branch rather than obsolete F-gate snapshots. */
++    if(motion.ready && !r->timed_entry && r->phase==RING_APPROACH && r->mouth_far_x>=0 && r->mouth_far_y>=0) {
+         unsigned had_far=capture_event_mask&(1u<<RING_IMAGE_FAR_CANDIDATE);
+         capture_image(image,r,RING_IMAGE_FAR_CANDIDATE);
+         if(r->mouth_progress>=4 && r->mouth_far_count)
+--- before/tests\run_ring_tests.ps1
++++ after/tests\run_ring_tests.ps1
+@@ -54,6 +54,7 @@
+ $ringJobs += @{ Name='visual-exit-recovery'; Test='test_ring_visual_exit.c'; Sources=@(); Defines=@() }
+ $ringJobs += @{ Name='forward-profile'; Test='test_ring_forward_profile.c'; Sources=@(); Defines=@() }
+ $ringJobs += @{ Name='v29-real-snapshots'; Test='test_ring_v29_regression.c'; Sources=@(); Defines=@() }
++$ringJobs += @{ Name='v30-entry-handover'; Test='test_ring_v30_regression.c'; Sources=@(); Defines=@() }
+ New-Item -ItemType Directory -Path $ringTemporary | Out-Null
+ try {
+     foreach ($ringJob in $ringJobs) {
+--- before/tests\test_ring_diag_isolation.c
++++ after/tests\test_ring_diag_isolation.c
+@@ -189,7 +189,7 @@
+     }
+     for(i=0;i<200u;++i){uart_port.used=0;ring_uart_diag_poll(0,100,100);}
+     uart_capture[uart_capture_count]=0;
+-    CHECK(strstr(uart_capture,"#RING,29,UART1,115200")!=NULL);
++    CHECK(strstr(uart_capture,"#RING,30,UART1,115200")!=NULL);
+     r=strstr(uart_capture,"\r\nR,");CHECK(r!=NULL);r+=2;end=strstr(r,"\r\n");CHECK(end!=NULL);
+     commas=0;for(p=r;p<end;++p)if(*p==',')++commas;CHECK(commas==33u);
+     r=strstr(uart_capture,"\r\nD,");CHECK(r!=NULL);r+=2;end=strstr(r,"\r\n");CHECK(end!=NULL);
+--- before/tests\test_ring_entry_speed.c
++++ after/tests\test_ring_entry_speed.c
+@@ -7,19 +7,19 @@
+ #include <math.h>
+ stc_SCB_t uart_port;char uart_capture[32768];unsigned uart_capture_count;
+ #define CHECK(c) do{if(!(c)){fprintf(stderr,"FAIL entry speed:%d %s f%.3f turn%.3f stage%u\n",__LINE__,#c,forward,turn,ring_runtime_diagnostics()->maneuver_stage);exit(1);}}while(0)
+-static uint32_t seq,epoch;static float forward,turn,measured=150;static int permit=0,observe=1;
++static uint32_t seq,epoch;static float forward,turn,measured=150;static int permit=0,observe=1,path=1;
+ static void ticks(int raw,unsigned n,int ready){while(n--)(void)ring_runtime_tick((int16_t)raw,(uint8_t)ready);}
+ static void apply(float normal,int state){forward=normal;turn=17;
+  if(observe)ring_runtime_observe_motion(measured,2.25f,-3.5f,-1234,2345);
+  ring_runtime_apply(&forward,&turn,0,state);}
+ static void boot(void){
+- memset(ring_command_mailbox,0,32);memset(ring_motion_mailbox,0,32);seq=0;permit=0;observe=1;measured=150;
++ memset(ring_command_mailbox,0,32);memset(ring_motion_mailbox,0,32);seq=0;permit=0;observe=1;path=1;measured=150;
+  ring_runtime_init(.1f);ring_runtime_set_operator(1,0);ticks(0,2000,0);ticks(0,1,1);apply(150,1);
+  epoch=ring_runtime_diagnostics()->command_epoch;}
+ static void command(int side,int phase,int cap,int timed,float normal,int state){
+  ring_packet_t p={{0}};p.word[RL_MAGIC]=RING_LINK_MAGIC;p.word[RL_EPOCH]=(int32_t)epoch;
+  p.word[RC_CAP]=ring_command_cap_turn(cap,0);p.word[RC_PHASE]=ring_command_versioned_phase(phase,0,RING_PAIR_VERSION);p.word[RC_DETECTED]=1;
+- p.word[RC_FAULT]=ring_command_diagnostics(0,1,0,0,1,0,1,0,80,-side);
++ p.word[RC_FAULT]=ring_command_diagnostics(0,1,0,0,path,0,1,0,80,-side);
+  if(phase==RING_COOLDOWN)p.word[RC_FAULT]=(int32_t)((uint32_t)p.word[RC_FAULT]|(1u<<RING_COMMAND_RELEASE_SHIFT));
+  if(timed)p.word[RC_FAULT]=(int32_t)((uint32_t)p.word[RC_FAULT]|RING_COMMAND_TIMED_ENTRY);
+  if(permit && phase==RING_APPROACH)p.word[RC_FAULT]=(int32_t)((uint32_t)p.word[RC_FAULT]|RING_COMMAND_FORCE_ENTRY);
+@@ -34,8 +34,8 @@
+  permit=1;measured=175;ticks(0,50,1);command(side,RING_APPROACH,100,1,150,3);
+  CHECK(ring_runtime_diagnostics()->maneuver_stage==1 && ring_runtime_diagnostics()->force_reason==2);
+  observe=0;ticks(0,160,1);command(side,RING_APPROACH,100,1,150,3);CHECK(ring_runtime_diagnostics()->maneuver_stage==1);
+- observe=1;measured=100;ticks(0,50,1);command(side,RING_APPROACH,100,1,150,3);
+- CHECK(ring_runtime_diagnostics()->maneuver_stage==2 && side*turn>0);
++ observe=1;measured=100;path=0;ticks(0,50,1);command(side,RING_APPROACH,100,1,150,3);
++ CHECK(ring_runtime_diagnostics()->maneuver_stage==2 && side*turn>0);path=1;
+  for(i=0;i<16;++i){previous=forward;measured=forward;ticks(side*1000,50,1);command(side,RING_ENTER,90,1,150,3);
+   CHECK(forward<=100 && forward>0 && fabsf(forward-previous)<=4.001f);}
+  CHECK(ring_runtime_diagnostics()->maneuver_stage==3);
+@@ -57,7 +57,7 @@
+ static void wire(void){
+  unsigned i;char *p,*end;unsigned commas=0;boot();command(1,RING_APPROACH,100,1,150,3);
+  for(i=0;i<180;++i){uart_port.used=0;ring_uart_diag_poll(0,0,0);}
+- uart_capture[uart_capture_count]=0;CHECK(strstr(uart_capture,"#RING,29,") && strstr(uart_capture,"meas10,pitch100,tilt100,pwmL,pwmR,m_age"));
++ uart_capture[uart_capture_count]=0;CHECK(strstr(uart_capture,"#RING,30,") && strstr(uart_capture,"meas10,pitch100,tilt100,pwmL,pwmR,m_age"));
+  p=strstr(uart_capture,"\r\nK,");CHECK(p);p+=2;end=strstr(p,"\r\n");CHECK(end);
+  while(p<end)if(*p++==',')++commas;
+  CHECK(commas==29);
+--- before/tests\test_ring_force.c
++++ after/tests\test_ring_force.c
+@@ -94,7 +94,7 @@
+  boot();command(1,RING_ENTER,1,0,3,0);
+  for(i=0;i<160;++i){ticks(0,46,1);command(1,RING_ENTER,i<6,0,3,.001f*i);uart_port.used=0;ring_uart_diag_poll(26,100,-100);}
+  uart_capture[uart_capture_count]=0;d=ring_runtime_diagnostics();(void)d;
+- CHECK(strstr(uart_capture,"#RING,29,"));CHECK(strstr(uart_capture,"#K,seq,ms,epoch,cmd,active,side,target10,rate10,out10,reason,age,drop"));
++ CHECK(strstr(uart_capture,"#RING,30,"));CHECK(strstr(uart_capture,"#K,seq,ms,epoch,cmd,active,side,target10,rate10,out10,reason,age,drop"));
+  CHECK(strstr(uart_capture,"\r\nK,"));
+  puts("PASS: force final-output/right-left contracts, rate feedback, locked direction, non-renewable time/yaw/travel, release, stale/stop/invalid requests, UART K");return 0;
+ }
+--- before/tests\test_ring_maneuver.c
++++ after/tests\test_ring_maneuver.c
+@@ -50,7 +50,7 @@
+ int main(void)
+ {
+  ring_maneuver_t s;int side,k;int32_t packed;
+- CHECK(RING_TIMED_ENTRY==1 && RING_PAIR_VERSION==29);
++ CHECK(RING_TIMED_ENTRY==1 && RING_PAIR_VERSION==30);
+  for(side=-1;side<=1;side+=2)route(side);
+  for(k=0;k<3;++k)interrupted(k);
+  ring_maneuver_begin(&s,0,1,0,0);s.armed=1;
+--- before/tests\test_ring_tangent_transport.c
++++ after/tests\test_ring_tangent_transport.c
+@@ -185,7 +185,7 @@
+     apply(1);
+     for(i=0;i<50u;++i) { ticks(1);apply(1);uart_port.used=0;ring_uart_diag_poll(0,100,100); }
+     uart_capture[uart_capture_count]=0;
+-    CHECK(strstr(uart_capture,"#RING,29,")!=NULL);
++    CHECK(strstr(uart_capture,"#RING,30,")!=NULL);
+     CHECK(strstr(uart_capture,"TRACK_MODE=1")!=NULL);
+     CHECK(strstr(uart_capture,"\r\nH,")!=NULL);
+     CHECK(strstr(uart_capture,",-1,2,0,0,108,51,-123456,45678,")!=NULL);
+--- before/tests\test_ring_timed_integration.c
++++ after/tests\test_ring_timed_integration.c
+@@ -41,11 +41,15 @@
+ static void route(int side)
+ {
+  int i;acquire(side);rtg_straight(pixels);
+- for(i=0;i<100;++i){ticks(0,20);revs+=.02f;frame();
+-  CHECK(ring_runtime_diagnostics()->maneuver_stage==1 && !ring_runtime_diagnostics()->force_active);
+-  CHECK(!ring_result.force_entry && speed>0);
++ /* Recognition is already structural and side-locked. Loss of N/F after
++  * the beep must not veto the scheduled75. A cold straight still never arms. */
++ for(i=1;i<=(int)(RING_MANEUVER_DELAY_MS/20u);++i){ticks(0,20);revs+=.02f;frame();
++  CHECK(speed>0);
++  if(i*20u<RING_MANEUVER_DELAY_MS)CHECK(ring_runtime_diagnostics()->maneuver_stage==1 && !ring_runtime_diagnostics()->force_active);
+  }
+- CHECK(beeps==1); /* timer + unrelated straight never authorises a turn */
++ CHECK(beeps==1 && ring_runtime_diagnostics()->maneuver_stage==2 && ring_runtime_diagnostics()->force_active);
++ for(i=0;i<6;++i){ticks(0,20);revs+=.02f;frame();}
++ CHECK(side*turn>0 && !ring_result.committed && !ring_result.exited_events);
+ }
+ static void interruption(int stop)
+ {
+--- before/tests\test_ring_uart_fifo.c
++++ after/tests\test_ring_uart_fifo.c
+@@ -70,7 +70,7 @@
+     reset_state();
+     for(i=0;i<100;++i)poll_frame(i);
+     uart_capture[uart_capture_count]=0;
+-    CHECK(strstr(uart_capture,"#RING,29,UART1,115200")!=NULL);
++    CHECK(strstr(uart_capture,"#RING,30,UART1,115200")!=NULL);
+     CHECK(strstr(uart_capture,"IMAGE=IPM")!=NULL);
+     CHECK(strstr(uart_capture,"YAW_SIGN=" RING_DIAG_STRINGIFY(RING_YAW_SIGN))!=NULL);
+     CHECK(strstr(uart_capture,"#D,seq,ms,epoch,cmd,frame,vdt,cand_det,cand_ok")!=NULL);
+@@ -256,7 +256,7 @@
+     uart_capture[uart_capture_count]=0;
+     CHECK(count_lines("\r\nJ,",22u)>20u && count_lines("\r\nE,",14u)>20u);
+     CHECK(count_lines("\r\nH,",16u)>20u && count_lines("\r\nD,",19u)>5u);
+-    CHECK(strstr(uart_capture,"#PAIR,29,29,1")!=NULL);
++    CHECK(strstr(uart_capture,"#PAIR,30,30,1")!=NULL);
+     printf("UART RDEGHJ pressure sample: %u bytes / 9200 ms, queue=%u, drop=%lu\n",
+         uart_capture_count,ring_diag_count,(unsigned long)ring_diag_dropped);
+     puts("PASS: bounded FIFO 16/64/128, R33/D19/E14/G14, fresh-frame cadence, E/G priority, bandwidth/backpressure and drops");
+--- before/tests\test_ring_uart_protocol.c
++++ after/tests\test_ring_uart_protocol.c
+@@ -135,9 +135,9 @@
+             CHECK(((value>>26)&7u)==(missed>7u?7u:missed));
+             CHECK(((value>>29)&3u)==reason && !(value&0x80000000u));++count;
+         }
+-        CHECK(RING_PAIR_VERSION==29u);
+-        CHECK(ring_command_version(ring_command_versioned_phase(2,64,RING_PAIR_VERSION))==29u);
+-        CHECK(ring_motion_version(ring_motion_operator_version(RING_OPERATOR_VALID,RING_PAIR_VERSION))==29u);
++        CHECK(RING_PAIR_VERSION==30u);
++        CHECK(ring_command_version(ring_command_versioned_phase(2,64,RING_PAIR_VERSION))==30u);
++        CHECK(ring_motion_version(ring_motion_operator_version(RING_OPERATOR_VALID,RING_PAIR_VERSION))==30u);
+     }
+     printf("PASS: v4 control and prior diagnostic packing preserved; v24 paired version and independent F-window/ready/path diagnostics, %u cases\n",count);
+     return 0;

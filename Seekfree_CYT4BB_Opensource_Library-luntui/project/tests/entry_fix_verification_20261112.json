@@ -1,0 +1,138 @@
+{
+  "date": "2026-11-12",
+  "version": 8,
+  "target": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui",
+  "status": "PASS",
+  "scope": "Ring module only; primary project, ordinary tracking, IPM, controller parameters, UI, startup, ISR unchanged",
+  "protected_saved_copy_inputs": {
+    "result": "PASS",
+    "count": 582
+  },
+  "primary_project_inputs": {
+    "result": "PASS",
+    "count": 589
+  },
+  "host_tests": {
+    "result": "PASS",
+    "log": "project/tests/host_tests_entry_fix_20261112.log",
+    "sha256": "2c1c7a55acc8f26bd5b799349d69909ce46bf9feee074e9548d8cf11477b1200",
+    "output": [
+      "PASS: 500 synthetic curved-geometry frame checks, route=0, full lap + exit + events + faults",
+      "PASS: 500 synthetic curved-geometry frame checks, route=-1, full lap + exit + events + faults",
+      "PASS: 500 synthetic curved-geometry frame checks, route=1, full lap + exit + events + faults",
+      "PASS: ordinary speed unchanged; caps, faults and stale stops apply only to confirmed rings",
+      "PASS: button idle, long start, debounce, chord priority/release, run latch",
+      "PASS: parked NORMAL/COOLDOWN detection beeps once per new event without control ownership",
+      "PASS: startup owns its buzzer; queued/active parked tones cannot leak into startup",
+      "PASS: running acquisition and genuine exit retain exactly two event beeps",
+      "PASS: standby recognition beeps once without control; brief dropout does not repeat; start requires fresh confirmation; display toggling preserves control",
+      "PASS: original passthrough/startup, independent motion integration, synthetic curved-image full lap, two event beeps, cooldown, timeout and boot isolation (not a real-camera replay)",
+      "PASS: ordinary straight does not hand over",
+      "PASS: ordinary one-sided spur without inner bulge does not hand over",
+      "PASS: ordinary one-sided spur without inner bulge does not hand over",
+      "PASS: ordinary cross does not hand over",
+      "PASS: ordinary rectangular dark patch (old false candidate) does not hand over",
+      "PASS: ordinary open hairpin peninsula does not hand over",
+      "PASS: ordinary smooth curve does not hand over",
+      "PASS: ordinary T junction does not hand over",
+      "PASS: ordinary rectangular side bulge is not sufficient ring evidence does not hand over",
+      "PASS: ordinary rectangular side bulge is not sufficient ring evidence does not hand over",
+      "PASS: ordinary T geometry does not hand over",
+      "PASS: ordinary fork without upper return does not hand over",
+      "PASS: ordinary disconnected white patches does not hand over",
+      "PASS: ordinary conflicting ring and through-cross geometry does not hand over",
+      "PASS: mirrored/slanted curved entry and far-cap-outside-image entry",
+      "PASS: ordinary candidate without connected near path does not hand over",
+      "PASS: row-scan work <= 38230 pixel reads/frame; noise stress 0.113 ms/frame on HOST (not MCU timing)",
+      "PASS: far short island observes without beeping/stopping; larger reliable island acquires and persists",
+      "PASS: both side-clipped curved islands acquire without requiring two white branches",
+      "PASS: tangent cold start, side opening, slanted cross and detached flecks leave ordinary control unchanged",
+      "PASS: clipped entry continuously becomes a single-edge orbit; path maintains normal distance from inner edge",
+      "PASS: 463 field-failure geometry regression frames (synthetic, not photo replay)",
+      "PASS: advancing island, short occlusion before row108, retained control, reacquisition and CIRCLE",
+      "PASS: measured tangent of the same island maintains branch; straight lane cannot refresh it",
+      "PASS: fixed island, straight/cross and expired history cannot turn motion into physical entry",
+      "PASS: unknown visual intervals cannot accumulate/revive entry progress on the next fresh frame",
+      "PASS: 157 entry continuity regression frames (synthetic geometry, not field replay)",
+      "PASS: strong curved ring survives raw=2; slanted cross and conflicting geometry do not acquire",
+      "PASS: centre jitter does not reverse an observed entry side",
+      "PASS: straight road plus supplied yaw/displacement cannot establish circle following",
+      "PASS: an unchanged island ahead plus supplied motion cannot commit or enter CIRCLE",
+      "PASS: held/predicted paths never provide branch or CIRCLE confirmation",
+      "PASS: short normal-looking slice after actual entry does not cancel a committed car",
+      "PASS: uncommitted normal/cross fallback releases control without false exit or latched stop",
+      "PASS: visual time and frame count expire evidence even while motion timestamp is frozen",
+      "PASS: unknown vdt does not shorten the real 30-second protection deadline",
+      "PASS: opposite-curvature/look branch cannot refresh acquired ring corridor",
+      "PASS: signed full lap, genuine outer opening, tangent exit guide and ordinary-road recovery",
+      "PASS: actual committed path loss retains bounded-stop protection",
+      "PASS: isolated protocol/control; 457 additional synthetic geometry frames",
+      "PASS: RING_ENABLE=0 preserves ordinary error/state/speed/turn despite injected ring fault",
+      "PASS: v4 control unchanged plus v5/v8 diagnostic packing, 30768 cases",
+      "UART pressure sample: 19351 bytes / 9200 ms, queue=1, drop=0",
+      "PASS: bounded FIFO 16/64/128, R33/D19/E14, independent fresh-frame cadence, E decision priority, bandwidth/backpressure and drops",
+      "PASS: independent D/E/control isolation, delayed/stale/malformed packets, 3 epoch restarts, R33/D19/E14 (492 checks)",
+      "PASS: 582 v7 production inputs byte-identical, including both mains, ISR, startup/buttons/display, ordinary tracking, camera/IPM, balance/PID, drivers and build configuration"
+    ]
+  },
+  "builds": [
+    {
+      "core": 0,
+      "result": "PASS",
+      "errors": 0,
+      "warnings": 0,
+      "log": "project/tests/build_entry_fix_cm7_0_20261112.log",
+      "shared_addresses": "PASS",
+      "outputs": [
+        {
+          "file": "project/iar/project_config/Debug_m7_0/Exe/cyt4bb7_cm_7_0.out",
+          "bytes": 1846788,
+          "sha256": "069a2a286e9fb42c096b1f12045515c07a6529e29e250d26553641c024270673"
+        },
+        {
+          "file": "project/iar/project_config/Debug_m7_0/Exe/cyt4bb7_cm_7_0.hex",
+          "bytes": 154843,
+          "sha256": "071446ec8cc647fdb6b3a7b11993badfd1b562088f027181bbb51b66e1afc77c",
+          "records": 3443
+        }
+      ]
+    },
+    {
+      "core": 1,
+      "result": "PASS",
+      "errors": 0,
+      "warnings": 0,
+      "log": "project/tests/build_entry_fix_cm7_1_20261112.log",
+      "shared_addresses": "PASS",
+      "outputs": [
+        {
+          "file": "project/iar/project_config/Debug_m7_1/Exe/cyt4bb7_cm_7_1.out",
+          "bytes": 1986444,
+          "sha256": "6b9c52c256797ec0fd6f992cf9e3d137caec45e26c93846af9422646a5475f5d"
+        },
+        {
+          "file": "project/iar/project_config/Debug_m7_1/Exe/cyt4bb7_cm_7_1.hex",
+          "bytes": 127880,
+          "sha256": "24b6bb1175497cbc8c74b1422da876fa7ab9481bb351448c53a8efc211ee6c52",
+          "records": 2844
+        }
+      ]
+    }
+  ],
+  "serial": {
+    "port": "COM9",
+    "baud": 115200,
+    "format": "8N1",
+    "header_version": 8,
+    "unchanged": [
+      "R33",
+      "D19",
+      "control v4"
+    ],
+    "new": "E14 entry evidence/hold limits/decision; independent diagnostic mailbox 0x280010a0",
+    "monitor": "Receive only, waiting through vehicle power-off periods"
+  },
+  "hardware_validation": "Not flashed; no claim of a completed real-car ring lap",
+  "backup": "project/_backup_before_ring_entry_fix_20261112",
+  "packaging": "Engineering HEX/OUT only; no extra package or release"
+}

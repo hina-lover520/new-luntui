@@ -1,0 +1,181 @@
+{
+  "date": "2026-11-13",
+  "version": 15,
+  "status": "PASS",
+  "target": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui",
+  "scope": "Ring local near-corner association and current interior bottom-contact passage only; ordinary inputs preserved",
+  "protected_inputs": {
+    "count": 581,
+    "result": "PASS",
+    "preserved_local_inputs": [
+      {
+        "file": "project/code/blance.c",
+        "original_reference_sha256": "42e56af401add6c41c31cedc9290b86d1a2ac764baafd1a52aee4fa0577beefb",
+        "preserved_sha256": "1ba01bce573fd6dc864063c8be9cd9f4ff2650f4614afec4acaec5ea11453e1c",
+        "last_write_before_delivery": "2026-11-12T13:17:54.091Z",
+        "details": "SERVO_RL_NEUTRAL and SERVO_RR_NEUTRAL are already 85 degrees in saved copy, versus 90 in initial v12 reference. Outside ring update; preserved without writing this target source."
+      }
+    ]
+  },
+  "primary_inputs": {
+    "count": 589,
+    "result": "PASS"
+  },
+  "host_tests": {
+    "groups": 29,
+    "legacy_frontal_groups": 22,
+    "production_tangent_groups": 7,
+    "result": "PASS",
+    "log": "project\\tests\\host_tests_bottom_pass_20261113.log",
+    "sha256": "e792df6379b326370cc811af4333356e019d0c3a974df145d436a2ecd7402d15"
+  },
+  "builds": [
+    {
+      "core": 0,
+      "errors": 0,
+      "warnings": 0,
+      "original_unused_warnings": [],
+      "shared_symbols": {
+        "ring_command_mailbox": {
+          "address": "0x28001040",
+          "bytes": 32
+        },
+        "ring_motion_mailbox": {
+          "address": "0x28001060",
+          "bytes": 32
+        },
+        "ring_diagnostic_mailbox": {
+          "address": "0x28001080",
+          "bytes": 32
+        },
+        "ring_entry_diagnostic_mailbox": {
+          "address": "0x280010a0",
+          "bytes": 32
+        },
+        "ring_geometry_diagnostic_mailbox": {
+          "address": "0x280010c0",
+          "bytes": 32
+        },
+        "ring_topology_diagnostic_mailbox": {
+          "address": "0x280010e0",
+          "bytes": 32
+        },
+        "ring_image_mailbox": {
+          "address": "0x28001100",
+          "bytes": 128
+        },
+        "ring_image_ack_mailbox": {
+          "address": "0x28001180",
+          "bytes": 32
+        },
+        "ring_mouth_diagnostic_mailbox": {
+          "address": "0x280011a0",
+          "bytes": 32
+        }
+      },
+      "log": "project\\tests\\build_bottom_pass_cm7_0_20261113.log",
+      "outputs": [
+        {
+          "file": "project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.out",
+          "bytes": 2002408,
+          "sha256": "949ca08ff265e3270a9ac7ff05f71beadfb3a8679ba018174052c340ad665896"
+        },
+        {
+          "file": "project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.hex",
+          "bytes": 212910,
+          "sha256": "004e978062fbd122a9ee0f0d0b2f925ca04e72f7bb12d9092e0d004b2e2d0529"
+        }
+      ],
+      "hex_records": 4734,
+      "hex_checksum_and_eof": "PASS"
+    },
+    {
+      "core": 1,
+      "errors": 0,
+      "warnings": 0,
+      "original_unused_warnings": [],
+      "shared_symbols": {
+        "ring_command_mailbox": {
+          "address": "0x28001040",
+          "bytes": 32
+        },
+        "ring_motion_mailbox": {
+          "address": "0x28001060",
+          "bytes": 32
+        },
+        "ring_diagnostic_mailbox": {
+          "address": "0x28001080",
+          "bytes": 32
+        },
+        "ring_entry_diagnostic_mailbox": {
+          "address": "0x280010a0",
+          "bytes": 32
+        },
+        "ring_geometry_diagnostic_mailbox": {
+          "address": "0x280010c0",
+          "bytes": 32
+        },
+        "ring_topology_diagnostic_mailbox": {
+          "address": "0x280010e0",
+          "bytes": 32
+        },
+        "ring_image_mailbox": {
+          "address": "0x28001100",
+          "bytes": 128
+        },
+        "ring_image_ack_mailbox": {
+          "address": "0x28001180",
+          "bytes": 32
+        },
+        "ring_mouth_diagnostic_mailbox": {
+          "address": "0x280011a0",
+          "bytes": 32
+        }
+      },
+      "log": "project\\tests\\build_bottom_pass_cm7_1_20261113.log",
+      "outputs": [
+        {
+          "file": "project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.out",
+          "bytes": 2035872,
+          "sha256": "87d237d0118733b5b5724f96fd02008ac0bfb470e7f489481c80e594b7830023"
+        },
+        {
+          "file": "project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.hex",
+          "bytes": 142296,
+          "sha256": "4a52715b1d8ee0b549d9991cba2f7f1a1d5d37cfd3c9ce8d34974513abcc6ffc"
+        }
+      ],
+      "hex_records": 3164,
+      "hex_checksum_and_eof": "PASS"
+    }
+  ],
+  "delivered_files": {
+    "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring.c": "e283501bcc88eea06c3393a703c6489ec2ee884a62704b8337daca66412c7245",
+    "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring_link.h": "0d2a5aa3d979d294233ab2b5012bd3a53ba90cbe4002298c8a93f49ce9bdf491",
+    "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring_uart_diag.h": "4fb5250fbc6d82a71ef24c4ff3333bfc0398aa9125eadf12f1bf672b7b51658e",
+    "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\run_ring_tests.ps1": "c45638535e1255a45ab5f20cf07b7cd9527e206e49c7dec787ac82a217367054",
+    "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_bottom_pass.c": "9347def0654c935c4eba95bde89563c8d3aacf11e0c4127c19a70d67ee648f0c",
+    "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_uart_protocol.c": "a0661e51f7d0b6a5e5fb9f1e17383a53c791b76b199df0701de66b598cb707c2",
+    "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_tangent_transport.c": "9d8443ae06ac5ec37fdcf1cdfc8cf0519de3444681142bdfece306a9ac8a1eb6",
+    "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_uart_fifo.c": "a6e585698d9184d764e0312fe0f1a5e214e4876b1c2b1510882de1f45fb52f41",
+    "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_diag_isolation.c": "132e11ddaee7cec915375b1fdae23ede074a888e7e590fa387331b16a591e03b",
+    "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\fixtures\\v14_real\\near_19.bin": "47eae7c1b131be542be05f89063440e3b110cd31593d43e8fe70e9adcb34e311",
+    "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\fixtures\\v14_real\\near_19.json": "b2f5f3aa3e1f94bdc37a7ff874203c2d67a46cf5eb54f01f53c8eba81e61093b",
+    "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\fixtures\\v14_real\\near_53.bin": "5f91ae72207f4e1531d4329635bcc787d6e100869e486351fe566371bfba9b8d",
+    "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\fixtures\\v14_real\\near_54.bin": "f28241c763a7c0b7524f59b9138481553a1af8f7f7a623e20901a3a60f13645e",
+    "readme.md": "cf845ad4f1625eacbca187ca1546e3bc53e22beddb9110a76075d8caf8744f0b",
+    "uart1_ring_diagnostics.md": "4dc37ce1016f8f9aa72992f8f19d057f42bb73f793b6834c3d312b3e9b8f27da",
+    "tuning_data\\2026-11-12_2207\\serial\\audit_v15_topology_images.py": "4c987b8f65074f67fcc48b82331f8dc77c5f6f403c3389c2e7c0836224d4d057"
+  },
+  "serial": {
+    "port": "COM9",
+    "baud": 115200,
+    "header": "#RING,15",
+    "pair": "#PAIR,15,15,1",
+    "parser_self_test": "PASS; J20/J22, S15, invalid nmiss/npass, image chunks and CRC",
+    "listener_restarted": false
+  },
+  "backup": "project/_backup_before_bottom_pass_fix_20261113",
+  "packaging": "Existing engineering outputs only; no separate package; no flashing",
+  "hardware_validation": "Not performed. Synthetic moving-camera/negative cases and static CRC-verified image observations do not prove actual closed-loop full-lap success."
+}

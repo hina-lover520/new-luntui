@@ -1,0 +1,185 @@
+{
+  "version": 36,
+  "created": "20261120_233908",
+  "target": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui",
+  "backup": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\_backup_before_v36_20261120_233908",
+  "files": {
+    "project/code/ring.c": {
+      "before": "43b82734ef90db766f28ea66338d2ead07856a8e9122ce4c391f411792958c19",
+      "after": "90b9a88db3af439b0d7f5e750d04f700a8052085644c4b8544e7a5d35f508615"
+    },
+    "project/code/ring.h": {
+      "before": "231860cab19ca31e80489175838d5b68aed4d90195cd93050fd6c95079042ad7",
+      "after": "7a96d3a2faaf4df7e05cc2e86d4894883447ff3238c9a2a2716a777763989ff8"
+    },
+    "project/code/ring_event_beep.h": {
+      "before": "f40452a508a0c0b04ca7bfa9b398ca06d1ffa250180a1cbe3f739cfcfcf35671",
+      "after": "2a0b10276ab51fcd63c204977dc1825d854d70fda6622a7b3dd0c021678267a1"
+    },
+    "project/code/ring_exit_corridor.h": {
+      "before": null,
+      "after": "246b38e24f5c747eb33baec13b2af50b088ce15a347301b51ce326e1a0f6f4f0"
+    },
+    "project/code/ring_exit_opening.h": {
+      "before": "6e9a1008a69c39c17a1c7a1db2a3be22f87ebca2b530c1bf355206762d617c38",
+      "after": "ed1ca23839f57133f0765493875e5953e267a7266e1a5b0ab75eea9a54542d70"
+    },
+    "project/code/ring_exit_turn.h": {
+      "before": "a64e68d35880dd80956f7edf5a81dd4e42d4a2be8affaaedbb21744acee8874a",
+      "after": "b978bc250c8d73a6adb662ab6266c595a0b445ad0b96867321117805bc61e7c4"
+    },
+    "project/code/ring_link.h": {
+      "before": "a2cb751ecbb8d3e4c1750e3e00fc9863a8f9e6d63e3497e37ffb43a2ed18e61d",
+      "after": "dd3225852f4509399ef56b773b8edb53bd56719dfd594eac60b961064de24982"
+    },
+    "project/code/ring_maneuver.h": {
+      "before": "b1a128793f8b53856dbf40d5c0b914e47bb701efe09a13b845977c5f76c8d13e",
+      "after": "c89ba7a0a31a47e99db008c42158ec47c32e81643b1f6b6261cb00a94212e689"
+    },
+    "project/code/ring_runtime.c": {
+      "before": "965f8c6323468248a4ac722c813613ea2bdbef218b13fd90f2cbd976f38e011c",
+      "after": "5d861d4d4d563e5ec4b4ea4dc78f1856d7435678957a8d3057c54705fc36c0dc"
+    },
+    "project/code/ring_uart_diag.h": {
+      "before": "3dc75780a335881561d38b8da25f02b620d08d42919e8e8baaee326f07b33995",
+      "after": "1182549c2073f2e4b049cc95be67485c2c3bea8ec351feddb5a96829335f2da6"
+    },
+    "project/code/ring_vision.c": {
+      "before": "d06d9d93a59f055b800dc30ad5878043b4e35f74b841162816a9c05f850163f3",
+      "after": "fea516ba7e8b0bb8a6dbc0bd58083c02d6fb80200c371409a9d96a043874ab1b"
+    },
+    "project/tests/run_ring_tests.ps1": {
+      "before": "511aee993df0e1553215f51d8c2c049bb01a277bb3bc7299ae19775e354ec666",
+      "after": "6dbf36e57c127f6706f9d02dc3392fec6623e00d1183d1d7c48f39ec6ce07cd9"
+    },
+    "project/tests/test_ring_diag_isolation.c": {
+      "before": "3126a937e6a1af4299d8a08b5293655df038bce5fe689f6a3828f04807299329",
+      "after": "6fa839ea081d10d6a4cb76a0f565f6f7cbfd1a17d1fb11c567ad6f332e898938"
+    },
+    "project/tests/test_ring_entry_speed.c": {
+      "before": "3d8c7e304aab624d2b00bf6cce784fb9e23abd2a42d90c851490a6a7cd7a110f",
+      "after": "32def41658ddff5698462f79f1c43c3643b00c04664fce8e3fe9e0e56cc594ef"
+    },
+    "project/tests/test_ring_force.c": {
+      "before": "85bff9dd60fd23c324403abc065ab7d3b0b2efc65d9f1a778b494bd52414e091",
+      "after": "edf211df124c8f7337a0c1a78e81195964f61e12c5883a0fc3bddd5334ce0442"
+    },
+    "project/tests/test_ring_integration.c": {
+      "before": "f0ce706368e4663c18a017ab84641519e7f6876f64b6bf04797300bed1affcca",
+      "after": "02f06701a2b592cd541769c3accc63d83480da19fcade3d4aa65fd6d264acb2d"
+    },
+    "project/tests/test_ring_maneuver.c": {
+      "before": "d9fc443d0dc1b750f080aeba8743bf6cb71e78e613ed055d54a2a60ada18f029",
+      "after": "1244d91faf36d4e763538da0cd3df5a87e04ed7b4be3837e3c43eab4248f69b3"
+    },
+    "project/tests/test_ring_standby_beep.c": {
+      "before": "85f823eba05cb97ba988900eb458349fe4b17e5631ca316cf562e238ddee4411",
+      "after": "269865992985b6a823bda428d5f413404b058a745c931d5e5928ea0af61fe752"
+    },
+    "project/tests/test_ring_tangent_transport.c": {
+      "before": "4690310e54ee3870e269cf547cb14768c80b767e052ad5c6826d6cedac8527f6",
+      "after": "c826ead64ad22a8d7f8b2dac46b5f5281f70ae63486d936d0c1325b503232e27"
+    },
+    "project/tests/test_ring_timed_integration.c": {
+      "before": "c6b9ae468fb9579a2a507157d2b676b025c82d24a4e29efd4bd707a59cfdf996",
+      "after": "bf6fb4dee39335ab561213d28e79e09429b04daed8edecd09cc732827394c73e"
+    },
+    "project/tests/test_ring_uart_fifo.c": {
+      "before": "a6b41c73896cbe1b3c1241af983d27752e3cc8cd9ff51bd6bad4c6d934093f35",
+      "after": "8df16f4faccce24aec3b973fc4973a8d9aa3bda7ba0853ff7facdf511fdb1f8f"
+    },
+    "project/tests/test_ring_uart_protocol.c": {
+      "before": "3a0274ba694bc9ffb9d6900a8525db9dcc94ba0a3861ebd3d53af939ac7c2b82",
+      "after": "2f44c1d9a27cfc9d29186f574a281df690e7837d65bb283201c02c246a6d2d48"
+    },
+    "project/tests/test_ring_v31_exit.c": {
+      "before": "a8928a3fbf3342f48317194ba24b93edb9e23868d3b19465a8f1aa58c49ec03d",
+      "after": "3c598173f4d7aeca427c5df31aaab26bb4de1dd4c7f5c33c528a06fefb2c5c67"
+    },
+    "project/tests/test_ring_v32_handover.c": {
+      "before": "250d5f85f1bfb184fd1bfb4907a6fcd205a28dbfab84f96a78e6eca3130a95bc",
+      "after": "0f5916eb5d3f391146c1b875a8bc0d3c2a16d60ac93abf408ec755162109d697"
+    },
+    "project/tests/test_ring_v33_exit.c": {
+      "before": "973f6df75efb1eb1e39c76b9121f08c5ffdf24f46bfc0cb28312fa39cafa1209",
+      "after": "7309740209c7adcb6c23a1c5627be2ea72564936dda08b4c5bebbda7e5e23df9"
+    },
+    "project/tests/test_ring_v33_exit_uart.c": {
+      "before": "c8e0c21e53b99c40adc408b43dbee3769dd74c7ed2eaf953875d1abb6b0b1387",
+      "after": "cc1b567d846f608b7434c6138530542d9d10bdc2fdb3fcc49a56a6b1816c65ca"
+    },
+    "project/tests/test_ring_v33_runtime.c": {
+      "before": "88ef92c2686b0281ae0133ec3122a8327ece2d157f976c00b2bc3303a2dd8c88",
+      "after": "19f80278d5714dc5d0ed294558607f01e54c09bbd4c6a028069e628ca101a89c"
+    },
+    "project/tests/test_ring_v34_exit_control.c": {
+      "before": "6d801eb44392316666cddc8b42da0c402fea7244ccee26024c0c15bce33add36",
+      "after": "04e3ba21e37740aae3b656750fef9377b07ee900e5538aae7b05faba4446bd37"
+    },
+    "project/tests/test_ring_v34_exit_uart.c": {
+      "before": "6e00472d72d5b2a97cc3f286b2f5ab0dda56ede0622955291420e03b5c379da2",
+      "after": "2da6b452f5d6cd58c14f389aa0efc25cdd6a1bcb3b14ffb3ddad643bee41ba43"
+    },
+    "project/tests/test_ring_v34_publish_integration.c": {
+      "before": "2033a89c448c1b67bfbacafb672c98e078517bb0fb85ffb9f13342cf6f81ead0",
+      "after": "57f479d732f42bfd4204fb19423a93d7bcae39af5d186040528c355c126d43b2"
+    },
+    "project/tests/test_ring_v35_episode_integration.c": {
+      "before": "e6320d5cbde1209eff892b20982cfd02c3c6d941ee4dfa2142f86b9f3fdfeb33",
+      "after": "cc5912506589c11b9ad64e6e0229ecec174f2fdde910b6ac88f818ec412de863"
+    },
+    "project/tests/test_ring_v35_uart_fair.c": {
+      "before": "f4eb0d09a5f8017c45742f36437e77b61f3a101fd262072c0bd00a74f872582f",
+      "after": "360562b4879fdddf2819c735ad092e33f0b07fae65743b5ed8f68eccd640d3a5"
+    },
+    "project/tests/test_ring_v36_beep.c": {
+      "before": null,
+      "after": "f9cd82e603b9b30fd4688e192bc7fdd15168d36ec3026bbdd5dda4faa31036ca"
+    },
+    "project/tests/test_ring_v36_beep_runtime.c": {
+      "before": null,
+      "after": "d02249be74c78d801abe8a220f1db6c8acb9005578dd0ea31c703202677bf8a9"
+    },
+    "project/tests/test_ring_v36_corridor.c": {
+      "before": null,
+      "after": "b011ffd53b4d0208293e1647f03e7634c9d462448ee84aba2aebeded90162ce2"
+    },
+    "project/tests/test_ring_v36_corridor_negatives.c": {
+      "before": null,
+      "after": "d886be8d7b49c52e6c5c6a9f39d6c30828a727063349e31c1feed99c0a9c6be3"
+    },
+    "project/tests/test_ring_v36_episode.c": {
+      "before": null,
+      "after": "55139a26378f9697696ab3b7a06a01639f1a13e4f6a9df0fdc01c9ac1777bd30"
+    },
+    "project/tests/test_ring_v36_gate400_runtime.c": {
+      "before": null,
+      "after": "86467d2ece5e8ec59fa9c561c64b6f5e31b97206292956deb3e176308d7de154"
+    },
+    "project/tests/test_ring_v36_runtime.c": {
+      "before": null,
+      "after": "39ec6f81cad997c134c642cfdf16e0c89690ce26dece7ba2d741f27a83f94c22"
+    },
+    "project/tests/v36_preserved_inputs.json": {
+      "before": null,
+      "after": "89292321a6b3a63bc9c8604a0e8013d4ffb586a35eb1fe6f0418b0d87f7236b7"
+    },
+    "project/tests/host_v36_20261120.log": {
+      "before": null,
+      "after": "61214ca980b7ec18a9225119783e8adf4f19cf7d2e5ec81a77579097a36e4a24"
+    }
+  },
+  "host_groups": 74,
+  "production_default_groups": [
+    "v36-cropped-exit",
+    "v36-runtime-observe-exit",
+    "v36-corridor-negatives",
+    "v36-net400-runtime",
+    "v36-beep-patterns",
+    "v36-beep-runtime",
+    "v36-episode-integration"
+  ],
+  "protected_count": 36,
+  "existing_ring_definitions_unchanged": 97,
+  "readme_before": "917b043b0b535da695562abe477b5647fe1d66cc22251b1dd8787f1de24f721f"
+}

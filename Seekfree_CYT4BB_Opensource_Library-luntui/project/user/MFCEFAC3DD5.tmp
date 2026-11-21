@@ -1,0 +1,188 @@
+/*********************************************************************************************************************
+* CYT4BB Opensourec Library ���� CYT4BB ��Դ�⣩��һ�����ڹٷ� SDK �ӿڵĵ�������Դ��
+* Copyright (c) 2022 SEEKFREE ��ɿƼ�
+*
+* ���ļ��� CYT4BB ��Դ���һ����
+*
+* CYT4BB ��Դ�� ���������
+* �����Ը���������������ᷢ���� GPL��GNU General Public License���� GNUͨ�ù�������֤��������
+* �� GPL �ĵ�3�棨�� GPL3.0������ѡ��ģ��κκ����İ汾�����·�����/���޸���
+*
+* ����Դ��ķ�����ϣ�����ܷ������ã�����δ�������κεı�֤
+* ����û�������������Ի��ʺ��ض���;�ı�֤
+* ����ϸ����μ� GPL
+*
+* ��Ӧ�����յ�����Դ���ͬʱ�յ�һ�� GPL �ĸ���
+* ���û�У������<https://www.gnu.org/licenses/>
+*
+* ����ע����
+* ����Դ��ʹ�� GPL3.0 ��Դ����֤Э�� ������������Ϊ���İ汾
+* ��������Ӣ�İ��� libraries/doc �ļ����µ� GPL3_permission_statement.txt �ļ���
+* ����֤������ libraries �ļ����� �����ļ����µ� LICENSE �ļ�
+* ��ӭ��λʹ�ò����������� ���޸�����ʱ���뱣����ɿƼ��İ�Ȩ����������������
+*
+* �ļ�����          main_cm7_0
+* ��˾����          �ɶ���ɿƼ����޹�˾
+* �汾��Ϣ          �鿴 libraries/doc �ļ����� version �ļ� �汾˵��
+* ��������          IAR 9.40.1
+* ����ƽ̨          CYT4BB
+* ��������          https://seekfree.taobao.com/
+*
+* �޸ļ�¼
+* ����              ����                ��ע
+* 2024-1-4       pudding            first version
+********************************************************************************************************************/
+
+#include "zf_common_headfile.h"
+#include "find.h"
+#include "globals.h"
+#include "image.h"
+#include "car_control.h"
+#include "kaerman.h"
+#include "quaternion.h"
+#include "ztjx.h"
+#include "my_encoder.h"
+#include "blance.h"
+#include "small_driver_uart_control.h"
+
+// 舵机引脚 / 频率 / 角度映射宏 已移到 blance.h (舵机辅助平衡共用)
+static int len =0;
+
+// ******************************* �������� *******************************
+/*#define UART_INDEX              (DEBUG_UART_INDEX   )                           // Ĭ�� UART_0
+#define UART_BAUDRATE           (DEBUG_UART_BAUDRATE)                           // Ĭ�� 115200
+#define UART_TX_PIN             (DEBUG_UART_TX_PIN  )                           // Ĭ�� UART0_TX_P00_1
+#define UART_RX_PIN             (DEBUG_UART_RX_PIN  )                           // Ĭ�� UART0_RX_P00_0
+*/
+uint8 uart_get_data[64];                                                        // ���ڽ������ݻ�����
+uint8 fifo_get_data[64];                                                        // fifo �������������
+
+uint8  get_data = 0;                                                            // �������ݱ���
+uint32 fifo_data_count = 0;                                                     // fifo ���ݸ���
+
+uint8 by_fly[7];
+fifo_struct uart_data_fifo;
+
+extern volatile uint32 uart4_rx_isr_count;   // cm7_1_isr.c 中的 UART4 接收中断计数
+
+int main(void)
+{
+    clock_init(SYSTEM_CLOCK_250M); 	// ʱ�����ü�ϵͳ��ʼ��<��ر���>
+    debug_init();                   // ���Դ�����Ϣ��ʼ��
+    uart_init(UART_1, 9600, UART1_TX_P04_1, UART1_RX_P04_0);    
+    uart_rx_interrupt(UART_1, 1);  
+    kaerman_b_Init(&gyro_x,2.0f,2.0f,80.0f,80.0f,0.002f,0.002f);
+    kaerman_b_Init(&gyro_y,1.0f,1.0f,80.0f,80.0f,0.002f,0.002f);
+    kaerman_b_Init(&gyro_z,1.0f,1.0f,80.0f,80.0f,0.002f,0.002f);
+    // �˴���д�û����� ���������ʼ�������
+    quaternion_Init(&sc,&s_angle,&s_shu,1.2,0.001,0.002f);//pi,�Ƕȣ���Ԫ����kp,kd,�ж�ʱ��,2.0,0.001,0.05f
+    imu660rb_init();
+    
+    
+    
+    //imu660rc_init(IMU660RC_QUARTERNION_120HZ);
+
+    small_driver_uart_init();           // 小驱动两路无刷串口初始化 (UART4, 与飞控一致放在 CM7_1)
+
+    servo_balance_Init(1.0f, 0.1f, 1.0f, 0.1f);   // 舵机辅助平衡: 俯仰P,D / 横滚P,D (先小再大, 反了把 blance.c 里的方向数组取反)
+
+    // 轮腿平衡控制初始化 (角度环 + 角速度环 + 电机速度环)
+    // 参数: 角度环 P I D / 角速度环 P I D / 电机速度环 P I D, 待整定
+    balance_Init(155.0f,  0.0f,  3.0f,   // 角度环 5ms (度 -> 目标角速度), D 15->3 (÷分频比5, 保持阻尼不变)
+                 -0.15f, 0.0f, -0.1f,   // 角速度环 2ms (-> 目标轮速 RPM), D -0.2->-0.1 (÷2)
+                 0.1f, 0.01f, 0.0f);  // 电机速度环 1ms (RPM -> 占空比), 不变
+
+    // 位置环(定点): P>0 才生效, 先只调 P; 目标就是 balance_target_position (单位: 轮转数, 相对起点)
+    balance_position_Init(0.0f, 0.0f, 2.0f);   // 位置环(定点) P: 漂走拉不住就加大, 来回抖就减小; 反了(越踢越跑)就改成 -2.0
+    balance_target_position = 0.0f;     // 0=原地保持; 改正值让车往前走到该位置, 负值往后
+
+    // 上电即自动进入"舵机起立"阶段(servo_balance_star 内部), 站起后自动切轮子+舵机平衡, 无需手动调用
+
+    //888888888888888
+    //car_Init(0.0,0.0,0.0,0.0,0.0,0.0,  0.0,0.0,0.0);
+    //car_Init(0.0,0.0,0.0,  0.0,0.0,0.0,  4.5,0.0,5.0);   // 旧四轮有刷电机, 轮腿不用
+    //car_Init(2.5,0.0,0.25,  2.5,0.0,0.25, 5.5,0.0,0.35);
+    
+    //my_encoder_Init(1.0,0.0,0.8, 1.0,0.0,0.8, 0.6,0.0,0.8, 1.2,0.0,0.8);//1.0,0.0,0.5
+    
+    //my_encoder_Init(1.2,0.0,0.6, 1.2,0.0,0.5, 0.8,0.0,0.5, 0.8,0.0,0.6);//1.0,0.0,0.5   // 旧编码器, 轮腿不用
+    
+    //88888888888888888
+    //encoder_quad_init(ENCODER_QUADDEC1, ENCODER_QUADDEC_A1, ENCODER_QUADDEC_B1);// ��ʼ��������ģ�������� ������������ģʽ
+    //encoder_quad_init(ENCODER_QUADDEC2, ENCODER_QUADDEC_A2, ENCODER_QUADDEC_B2);// ��ʼ��������ģ�������� ������������ģʽ
+    //encoder_quad_init(ENCODER_QUADDEC3, ENCODER_QUADDEC_A3, ENCODER_QUADDEC_B3);// ��ʼ��������ģ�������� ������������ģʽ
+    //encoder_quad_init(ENCODER_QUADDEC4, ENCODER_QUADDEC_A4, ENCODER_QUADDEC_B4);// ��ʼ��������ģ�������� ������������ģʽ
+    
+    pit_ms_init(PIT_CH0,1);
+    pit_enable(PIT_CH0);
+    pit_ms_init(PIT_CH1,1);
+    pit_enable(PIT_CH1);
+    pit_ms_init(PIT_CH2,5);
+    pit_enable(PIT_CH2);
+    pit_ms_init(PIT_CH10,2);
+    pit_enable(PIT_CH10);
+    
+    // �˴���д�û����� ���������ʼ�������
+    while(true)
+    {
+        // �˴���д��Ҫѭ��ִ�еĴ���
+
+       // fifo_data_count = fifo_used(&uart_data_fifo);                             // �鿴 fifo �Ƿ�������
+       // if(fifo_data_count != 0)                                                // ��ȡ��������
+       // {
+        //   fifo_read_buffer(&uart_data_fifo, fifo_get_data, &fifo_data_count, FIFO_READ_AND_CLEAN);    // �� fifo �����ݶ�������� fifo ���صĻ���
+       //     uart_write_string(UART_2, "\r\nUART get data:");                // ���������Ϣ
+            //uart_write_buffer(UART_2, fifo_get_data, fifo_data_count);      // ����ȡ�������ݷ��ͳ�ȥ
+            //if(by_fly[0]==0xAA&&by_fly[4]==0x55)
+            //{
+        system_delay_ms(30);
+        rcc_roll = imu660rc_roll;
+        rcc_pitch=imu660rc_pitch;
+        rcc_yaw = imu660rc_yaw;
+        // 旧四轮编码器读取, 轮腿不用 (速度反馈已改为无刷驱动回传的 receive_*_speed_data)
+        //encoder_data_dir[0] = encoder_get_count(ENCODER_QUADDEC1);
+        //encoder_clear_count(ENCODER_QUADDEC1);
+        //encoder_data_dir[1] = encoder_get_count(ENCODER_QUADDEC2);
+        //encoder_clear_count(ENCODER_QUADDEC2);
+        //encoder_data_dir[2] = encoder_get_count(ENCODER_QUADDEC3);
+        //encoder_clear_count(ENCODER_QUADDEC3);
+        //encoder_data_dir[3] = encoder_get_count(ENCODER_QUADDEC4);
+        //encoder_clear_count(ENCODER_QUADDEC4);
+        pwm_set_duty(SERVO_MOTOR_PWM2, (uint32)SERVO_MOTOR_DUTY(0.0f));
+        printf("agy=%.2f agx=%.2f gyro=%.2f spdL=%d spdR=%d L=%d R=%d pos=%.3f tgt=%.2f pout=%.1f sp=%.1f sr=%.1f s1=%.0f s2=%.0f s3=%.0f s4=%.0f st=%d rxISR=%d\n", s_angle.agy, s_angle.agx, imu660rb_gyro_y_l, small_driver_value.receive_left_speed_data, small_driver_value.receive_right_speed_data, balance_left_duty, balance_right_duty, balance_position_measured, balance_target_position, balance_position_out, servo_pitch_out, servo_roll_out, servo_angle[0], servo_angle[1], servo_angle[2], servo_angle[3], balance_stand_up_done, uart4_rx_isr_count);
+        // printf("%f,%f,%f\n",s_angle.agz,imu660rc_pitch,imu660rc_roll -2.0);
+        //printf("1");
+       //printf("%f,%f,%f\n",imu660rc_roll,imu660rc_pitch,imu660rc_yaw);
+        // �˴���д��Ҫѭ��ִ�еĴ���
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// �������       UART_INDEX �Ľ����жϴ������� ����������� UART_INDEX ��Ӧ���жϵ���
+// ����˵��       void
+// ���ز���       void
+// ʹ��ʾ��       uart_rx_interrupt_handler();
+//-------------------------------------------------------------------------------------------------------------------
+void uart_rx_interrupt_handler (void)
+{
+//    get_data = uart_read_byte(UART_INDEX);        // �������� while �ȴ�ʽ ���������ж�ʹ��
+  
+    //if(uart_query_buffer(UART_2, by_fly))                                  // �������� ��ѯʽ �����ݻ᷵�� TRUE û�����ݻ᷵�� FALSE
+    //{
+    //    fifo_write_buffer(&uart_data_fifo, by_fly, 5);     
+    //}
+    //uart_query_buffer(UART_2, by_fly);
+  len++;
+  if(len>6)len=0;
+  uart_query_byte(UART_1, &by_fly[0+len]);
+}
+
+// **************************** �������� ****************************
+// **************************** ���̳�������˵�� ****************************
+// ��������ʱ�밴�������������б����
+// ����1������û������
+//      �鿴�������ִ򿪵��Ƿ�����ȷ�Ĵ��ڣ����򿪵� COM ���Ƿ��Ӧ���ǵ������������� USB-TTL ģ��� COM ��
+//      �����ʹ����ɿƼ� CMSIS-DAP �������������ӣ���ô������������Ƿ��ɶ��������İ崮�������Ƿ��Ѿ����ӣ��������߲鿴���İ�ԭ��ͼ�����ҵ�
+//      �����ʹ�� USB-TTL ģ�����ӣ���ô��������Ƿ������Ƿ��ɶ���ģ�� TX �Ƿ����ӵĺ��İ�� RX��ģ�� RX �Ƿ����ӵĺ��İ�� TX
+// ����2��������������
+//      �鿴�����������õĲ������Ƿ����������һ�£������� zf_common_debug.h �ļ��� DEBUG_UART_BAUDRATE �궨��Ϊ debug uart ʹ�õĴ��ڲ�����

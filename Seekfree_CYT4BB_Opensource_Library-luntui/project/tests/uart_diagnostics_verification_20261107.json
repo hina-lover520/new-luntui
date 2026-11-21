@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-07",
+  "project": "D:/CYT4BB7_Library-master/CYT4BB7_Library-master/Seekfree_luntui/Seekfree_CYT4BB_Opensource_Library-luntui",
+  "backup": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\_backup_before_uart_diagnostics_20261107",
+  "buildMode": "IAR -make Debug",
+  "protectedProductionInputsUnchanged": 543,
+  "ordinaryMainChange": "Only diagnostic header and poll call added; old printf retained; restoring these two additions yields exact current baseline bytes",
+  "ordinarySpeedParameters": "100/85 RPM (latest user workspace baseline, preserved)",
+  "algorithmChanged": false,
+  "tests": {
+    "suites": 10,
+    "status": "PASS",
+    "protocolCases": 4725
+  },
+  "uart": {
+    "port": "UART1",
+    "tx": "P04_1",
+    "rx": "P04_0",
+    "baud": 9600,
+    "format": "8N1",
+    "normalPeriodMs": 1000,
+    "queueLines": 8,
+    "maxBytesPerService": 16
+  },
+  "builds": [
+    {
+      "core": 0,
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "core": 1,
+      "errors": 0,
+      "warnings": 0
+    }
+  ],
+  "firmware": [
+    {
+      "name": "cyt4bb7_cm_7_0.hex",
+      "size": 135673,
+      "sha256": "0d4ef432ee4a761a89796c22ad12663ab8b9a799673812926d0285ad9fe97df9"
+    },
+    {
+      "name": "cyt4bb7_cm_7_0.out",
+      "size": 1727940,
+      "sha256": "16a06f71f827e9c44d7f5d2c7f9b5325b1ed54160034ad3766b3de4f365a350f"
+    },
+    {
+      "name": "cyt4bb7_cm_7_1.hex",
+      "size": 119706,
+      "sha256": "2e930ce0b348e78ed4407afa609331351ed3ef49a1431a8a610c3c22a7990a58"
+    },
+    {
+      "name": "cyt4bb7_cm_7_1.out",
+      "size": 1900436,
+      "sha256": "ac0652f1f67fa0a20388820360b6ba2d8e03fc8265644b2e69dbb5cb3f251856"
+    }
+  ],
+  "realVehicleValidated": false,
+  "flashedToVehicle": false,
+  "hardwareUartReceptionValidated": false
+}

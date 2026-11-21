@@ -1,0 +1,120 @@
+{
+  "version": "ring branch v5",
+  "date": "2026-11-07",
+  "project": "D:/CYT4BB7_Library-master/CYT4BB7_Library-master/Seekfree_luntui/Seekfree_CYT4BB_Opensource_Library-luntui",
+  "protectedCount": 541,
+  "productionAllowed": [
+    "project/code/ring.c",
+    "project/code/ring.h",
+    "project/code/ring_link.c",
+    "project/code/ring_link.h",
+    "project/code/ring_vision.c",
+    "project/code/ring_runtime.c",
+    "project/code/ring_runtime.h",
+    "project/code/ring_uart_diag.h"
+  ],
+  "ordinarySpeedRpm": [
+    100,
+    85
+  ],
+  "hostSuites": 11,
+  "syntheticFramesPerRoute": 489,
+  "routeConfigurations": [
+    0,
+    -1,
+    1
+  ],
+  "isolationFrames": 456,
+  "protocolPackingCases": 15957,
+  "diagnosticIsolationChecks": 267,
+  "builds": [
+    {
+      "core": "CM7_0",
+      "command": "iarbuild -make Debug -log warnings",
+      "errors": 0,
+      "warnings": 0,
+      "mapPath": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\Debug_m7_0\\List\\cyt4bb7_cm_7_0.map",
+      "hex": {
+        "path": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.hex",
+        "records": 3146,
+        "dataBytes": 50284,
+        "sha256": "ff0a6024e169cf255cf4454d7bfce1314db2bf1993a54f72615cf40985513eac"
+      },
+      "out": {
+        "path": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.out",
+        "sha256": "f824e3e2ea75ff63499f3c184565a9efe2783996ed5e022863ee58828e0bbd51"
+      }
+    },
+    {
+      "core": "CM7_1",
+      "command": "iarbuild -make Debug -log warnings",
+      "errors": 0,
+      "warnings": 0,
+      "mapPath": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\Debug_m7_1\\List\\cyt4bb7_cm_7_1.map",
+      "hex": {
+        "path": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.hex",
+        "records": 2738,
+        "dataBytes": 43748,
+        "sha256": "223c15c3cc21debb85f8ae779167e0d86fa1a91f648aec6fa53764fa537d732c"
+      },
+      "out": {
+        "path": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.out",
+        "sha256": "6b17605091d6e0462d34e56767eccc3a2e3c9c5327986d8ed7eb4a2e0f431546"
+      }
+    }
+  ],
+  "sourceHashes": [
+    {
+      "file": "project/code/ring.c",
+      "sha256": "3232774be881270b612c2f8eabb3ea748fc03de0b0954c046c9759d28048bfda"
+    },
+    {
+      "file": "project/code/ring.h",
+      "sha256": "fab5945b5e2123744c73c7aa7d5da34e7aaa4338812096629d6b448dc30d286c"
+    },
+    {
+      "file": "project/code/ring_link.c",
+      "sha256": "41b5261b589ee1667fbcbf41f5a6b74f8a9c12ba78dac0d70714c12c502c788b"
+    },
+    {
+      "file": "project/code/ring_link.h",
+      "sha256": "8b4af1b6bbbdb937b4595ceafa53adba8530b7fb519dd7b4e9bc39a6ab17e866"
+    },
+    {
+      "file": "project/code/ring_vision.c",
+      "sha256": "c1cbe096783528d87473bfbe0cf7050f14183960fc2e64033bd343a0a13668dd"
+    },
+    {
+      "file": "project/code/ring_runtime.c",
+      "sha256": "b88bf06470e1a8e7499047e3656760e77a47233e791858d58f64b1ad70053f65"
+    },
+    {
+      "file": "project/code/ring_runtime.h",
+      "sha256": "b13e6a9cf9864fe46c8466ab263a343e5614bac01e8ca10394ff13df841f16dc"
+    },
+    {
+      "file": "project/code/ring_uart_diag.h",
+      "sha256": "5c469b204298aaf71acc7d7414eaba116733abd9cb8099f1e445a832e3e45f70"
+    }
+  ],
+  "monitoring": {
+    "port": "COM9",
+    "baud": 115200,
+    "pid": 51068,
+    "startedAt": "2026-11-07T21:45:28.1106420+08:00",
+    "state": "waiting_data",
+    "portOpen": true,
+    "totalBytes": 0,
+    "serialWrites": 0
+  },
+  "backup": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\_backup_before_ring_branch_v5_20261107",
+  "separateFirmwareBundle": "Not created: the user explicitly chose to retain only the existing in-project build outputs.",
+  "flashed": false,
+  "realVehicleRingValidated": false,
+  "limits": [
+    "Synthetic RAW-pixel images are not real-camera replay.",
+    "An isolated side opening cannot authorize ring takeover.",
+    "Uncalibrated pixel offsets/holds are not metric vehicle-motion predictions.",
+    "Real UART/processing timing remains to be measured."
+  ]
+}

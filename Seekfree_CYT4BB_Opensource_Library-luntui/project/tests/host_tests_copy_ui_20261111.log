@@ -1,0 +1,50 @@
+PASS: 500 synthetic curved-geometry frame checks, route=0, full lap + exit + events + faults
+PASS: 500 synthetic curved-geometry frame checks, route=-1, full lap + exit + events + faults
+PASS: 500 synthetic curved-geometry frame checks, route=1, full lap + exit + events + faults
+PASS: ordinary speed unchanged; caps, faults and stale stops apply only to confirmed rings
+PASS: button idle, long start, debounce, chord priority/release, run latch
+PASS: parked NORMAL/COOLDOWN detection beeps once per new event without control ownership
+PASS: startup owns its buzzer; queued/active parked tones cannot leak into startup
+PASS: running acquisition and genuine exit retain exactly two event beeps
+PASS: standby recognition beeps once without control; brief dropout does not repeat; start requires fresh confirmation; display toggling preserves control
+PASS: original passthrough/startup, independent motion integration, synthetic curved-image full lap, two event beeps, cooldown, timeout and boot isolation (not a real-camera replay)
+PASS: ordinary straight does not hand over
+PASS: ordinary one-sided spur without inner bulge does not hand over
+PASS: ordinary one-sided spur without inner bulge does not hand over
+PASS: ordinary cross does not hand over
+PASS: ordinary rectangular dark patch (old false candidate) does not hand over
+PASS: ordinary open hairpin peninsula does not hand over
+PASS: ordinary smooth curve does not hand over
+PASS: ordinary T junction does not hand over
+PASS: ordinary rectangular side bulge is not sufficient ring evidence does not hand over
+PASS: ordinary rectangular side bulge is not sufficient ring evidence does not hand over
+PASS: ordinary T geometry does not hand over
+PASS: ordinary fork without upper return does not hand over
+PASS: ordinary disconnected white patches does not hand over
+PASS: ordinary conflicting ring and through-cross geometry does not hand over
+PASS: mirrored/slanted curved entry and far-cap-outside-image entry
+PASS: ordinary candidate without connected near path does not hand over
+PASS: row-scan work <= 38230 pixel reads/frame; noise stress 0.106 ms/frame on HOST (not MCU timing)
+PASS: far short island observes without beeping/stopping; larger reliable island acquires and persists
+PASS: both side-clipped curved islands acquire without requiring two white branches
+PASS: tangent cold start, side opening, slanted cross and detached flecks leave ordinary control unchanged
+PASS: clipped entry continuously becomes a single-edge orbit; path maintains normal distance from inner edge
+PASS: 463 field-failure geometry regression frames (synthetic, not photo replay)
+PASS: strong curved ring survives raw=2; slanted cross and conflicting geometry do not acquire
+PASS: centre jitter does not reverse an observed entry side
+PASS: straight road plus supplied yaw/displacement cannot establish circle following
+PASS: an unchanged island ahead plus supplied motion cannot commit or enter CIRCLE
+PASS: held/predicted paths never provide branch or CIRCLE confirmation
+PASS: short normal-looking slice after actual entry does not cancel a committed car
+PASS: uncommitted normal/cross fallback releases control without false exit or latched stop
+PASS: visual time and frame count expire evidence even while motion timestamp is frozen
+PASS: unknown vdt does not shorten the real 30-second protection deadline
+PASS: opposite-curvature/look branch cannot refresh acquired ring corridor
+PASS: signed full lap, genuine outer opening, tangent exit guide and ordinary-road recovery
+PASS: actual committed path loss retains bounded-stop protection
+PASS: isolated protocol/control; 456 additional synthetic geometry frames
+PASS: RING_ENABLE=0 preserves ordinary error/state/speed/turn despite injected ring fault
+PASS: v4 control unchanged plus v5 diagnostic packing, 15957 cases
+PASS: bounded FIFO 16/64/128, legacy R33, D19 every 2 fresh frames, ordinary D heartbeat, event priority and drop visibility
+PASS: independent diagnostic/control isolation, delayed snapshots, stale/malformed packets, 3 epoch restarts, R33/D19 (267 checks)
+PASS: 579 unrelated inputs byte-identical; original control and IMU work unchanged after removing requested UI/start wiring; original vision pipeline byte-identical

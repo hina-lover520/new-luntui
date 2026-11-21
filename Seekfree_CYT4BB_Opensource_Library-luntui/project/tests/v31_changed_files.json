@@ -1,0 +1,104 @@
+{
+  "version": 31,
+  "groups": 50,
+  "backup": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\_backup_before_v31_20261120_153242",
+  "changes": [
+    {
+      "relative": "project\\code\\ring.h",
+      "before_sha256": "26c7f2e4e2b1f915fb7645778b8d0c16999252b23e6c716a1351c7e4ddd53828",
+      "after_sha256": "5eb19bd02eca7298f89dca8553a14112dfb488190e1c9a3383c3b6572399fb41"
+    },
+    {
+      "relative": "project\\code\\ring_link.h",
+      "before_sha256": "38187df1b9732b9aa3716478bc566b6073921443756caed758f3be7fbf3c00fd",
+      "after_sha256": "aa9b153b5b0b21e9b3ab39274509be5976b33d6646a2de4e96031c5c2b29e843"
+    },
+    {
+      "relative": "project\\code\\ring_maneuver.h",
+      "before_sha256": "681d7d6272a96a62b60a8ecf2cc42be47da83209e4665fd69446e83e8ed03318",
+      "after_sha256": "d93fd849791ca313e084bacd28aea34b11882339b13cc4dd1e1b8d9aba3d63c7"
+    },
+    {
+      "relative": "project\\code\\ring_runtime.c",
+      "before_sha256": "7834a32f369c1836ae1a13cdda6531a6a540bf2eb822a71ce5b901065b542163",
+      "after_sha256": "d66157429f92864d1c9000c9028ac59a084c5475ea3b036e577af02e79cf351b"
+    },
+    {
+      "relative": "project\\code\\ring_runtime.h",
+      "before_sha256": "8d9fefdda79baa7b1e42482184d7a908bfb5c9be6cbaa31e8ff5f5f515070410",
+      "after_sha256": "a304da27ffd7098e5e2f84fbafb66a46b5c3b8d42c9011cf3ba2f707cdf1edf9"
+    },
+    {
+      "relative": "project\\code\\ring_uart_diag.h",
+      "before_sha256": "ab05964d3647060e0300079e75b1b0f28426214672e9675cf425db21ba12ce44",
+      "after_sha256": "903848312ce1704a54c8e0dffaeabde7e3e61fe3fd9ddf441939f3be60f5e98f"
+    },
+    {
+      "relative": "project\\code\\ring_yaw_bias.h",
+      "before_sha256": null,
+      "after_sha256": "cc86b11a1423aeac883441d2076c37cbe3d1e297f94129f9d7aac0d65db3de11"
+    },
+    {
+      "relative": "project\\tests\\run_ring_tests.ps1",
+      "before_sha256": "28b8d19b8f8cc0c10194160097cd5780eb6e83dd4bbafe7092722516aaf01660",
+      "after_sha256": "02c1a008f4199f60b9fd4c7ecca9232e2331c55dcab6cdf0ccc38f2cdb0fd3b4"
+    },
+    {
+      "relative": "project\\tests\\test_ring_diag_isolation.c",
+      "before_sha256": "591e719ebed90d74faa95fa977e63892cb80396065ca117119fcf12a898054d1",
+      "after_sha256": "fa1d70380d0e7cd39293d70b71206d525da1194b73f2d974009c6544a1b90a1d"
+    },
+    {
+      "relative": "project\\tests\\test_ring_entry_speed.c",
+      "before_sha256": "43c3b1ec5731628056fe933c399a522314a19ee5cac85ec2b020e3d0cd62dc78",
+      "after_sha256": "2df987de9630040c5d4d86d545adf851d44d360e4974f2f638c1005dd01b1458"
+    },
+    {
+      "relative": "project\\tests\\test_ring_entry_uart_budget.c",
+      "before_sha256": "38763300ae3186efe7cb4110795509b6fa0d14b432dcee94d44feb8f64a6e9ed",
+      "after_sha256": "1e437fba4e2dd81b2cfd4ec919d635b5920da6f639f6c723ae15291240aff478"
+    },
+    {
+      "relative": "project\\tests\\test_ring_force.c",
+      "before_sha256": "2b8d88b155d6ad2c960216bef79369fa38c757d39d4e032dfd602ac47b4540ca",
+      "after_sha256": "20f96f072ca840b3c3b29d0f39e3bba14f91ac4b7c8d6e6f145868aeb24cc539"
+    },
+    {
+      "relative": "project\\tests\\test_ring_maneuver.c",
+      "before_sha256": "37ac9e7778008529691577e3226821147c47c47f8bb7cdb5a6433343f786d020",
+      "after_sha256": "9f2c47137653562a0db650fed50cee8b02cdbb1e4f460b442d062364f7ccef7a"
+    },
+    {
+      "relative": "project\\tests\\test_ring_tangent_transport.c",
+      "before_sha256": "a6c637fd0ec2bb5b01d08b8cba468589f193fa9fdd489a55d909ca62e6b9339f",
+      "after_sha256": "2e2f48395d06f4c03c935c1ad9f24b323a68189b0839e1150aa57688ed7918c0"
+    },
+    {
+      "relative": "project\\tests\\test_ring_uart_fifo.c",
+      "before_sha256": "a96a42cde5483cefb70121f04ffa93504c26611c976b54eebfb9b5299c9abea6",
+      "after_sha256": "218760764053db85cbcc1695c98412d65572632c249f34c4c8f8faa5b9fef0ff"
+    },
+    {
+      "relative": "project\\tests\\test_ring_uart_protocol.c",
+      "before_sha256": "31897d8f94b9b45445a30468017f554e563e9820e27e9118d5f65fdc3616bfb7",
+      "after_sha256": "1a5b7a572b85ea99e4477830f911db54eb0fc03b7939eeb44775cfdf97bf2511"
+    },
+    {
+      "relative": "project\\tests\\test_ring_v31_exit.c",
+      "before_sha256": null,
+      "after_sha256": "eabc15a82408136da54d91a4a91c3b696ddd2e2c6752f90c0272c12740a27d81"
+    },
+    {
+      "relative": "project\\tests\\test_ring_v31_motion.c",
+      "before_sha256": null,
+      "after_sha256": "d010cb18b3f8d4df5f1e5e776957018c689054be9440a9391aabe191f53742af"
+    },
+    {
+      "relative": "project\\tests\\test_ring_yaw_bias.c",
+      "before_sha256": null,
+      "after_sha256": "2f495d609a7c6acfc8fe19611b3fbf95114e7a3076925045e55aca5929b05785"
+    }
+  ],
+  "protected_files_count": 36,
+  "installed_at": "2026-11-20T15:32:43.173088"
+}

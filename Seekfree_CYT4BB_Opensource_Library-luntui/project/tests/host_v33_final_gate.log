@@ -1,0 +1,20 @@
+RUN: timed-integration; model=timed-entry-default
+PASS: side-1 first shared exit pose(0.00,-20.00,-360.02), net360.014deg, locked near/look94/94, ordinary error12 restored
+PASS: default timed full-world side-1:75 hands nonzero path error to original PID, measured CIRCLE/360/shared straight/exit; no angular heading lock
+PASS: side-1 completed exit cannot re-enter/beep/force until15s from first mode entry; fresh detection then arms once
+PASS: side1 first shared exit pose(0.00,-20.00,360.02), net360.014deg, locked near/look94/94, ordinary error12 restored
+PASS: default timed full-world side1:75 hands nonzero path error to original PID, measured CIRCLE/360/shared straight/exit; no angular heading lock
+PASS: side1 completed exit cannot re-enter/beep/force until15s from first mode entry; fresh detection then arms once
+PASS: default paired end-to-end beep -> configured heading hold -> bounded75 with live gyro then measured visual follow; blank frames cannot cause blind360, repeated commands do not reset, K29 motion telemetry, branchless completion releases original outputs without a fake exit, operator/stale releases without ring lock-stop, default standby beep without motion/cold cross isolation
+RUN: visual-exit-recovery; model=timed-entry-default
+PASS: visually committed full lap + aligned complete ordinary image exits without mandatory N/F pixels;270/359,uncommitted360,blank,cross,wrong heading,no net forward travel cannot fake exit;handoff returns original error/speed
+RUN: v31-exit-direction; model=timed-entry-default
+PASS: v31 both sides,180/270 and past360-opposite heading reject exit/beep; full360 straight exit keeps current through corridor and restores ordinary steering;360/15deg guards retained
+RUN: v33-selected-exit; model=timed-entry-default
+PASS: 28 v33 exit geometry/state cases including mirrors; candidate observation never steers early, first exit requires full lap, locked current corridor survives380deg, disconnected or vanished white road is rejected
+RUN: v33-exit-stale; model=timed-entry-default
+PASS: unknown capture interval and long fresh-frame gap clear unlatched exit evidence
+RUN: v33-exit-recover; model=timed-entry-default
+PASS: slow RECOVER keeps bounded blend and shares the original4s exit deadline
+PASS: connected near side roads block ordinary-controller handover; distant islands permit both recovery phases, including mirrors
+PASS: 36 user/main/PID/balance/vision/IPM inputs byte-identical to selected baseline

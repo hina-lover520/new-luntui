@@ -1,0 +1,19 @@
+{
+  "reason": "Preserve preexisting 16:02 IAR edits; only remove unused track_detect.c compilation from control core because its preexisting erosion_operation signature is incompatible. No source code or compiler/linker setting changed.",
+  "files": {
+    "project/iar/project_config/cyt4bb7_cm_7_1.ewp": {
+      "reference_sha256": "063305e9ad4d23821142929654fe9cef091043cc37a1ef1470f95ae17922b841",
+      "before_sha256": "e577780a0301e76974cc4172c4dd1c75b8690f6df97500ed3f2d93a88cb19152",
+      "before_mtime": "2026-11-14T16:02:02.368995",
+      "expected_sha256": "494a25da68297993995f7f531ecf294c1b9f6d71047becc7361aae8a53291d82",
+      "change": "Only this unused control-core compile-list entry removed; camera-core and source file intact."
+    },
+    "project/iar/project_config/cyt4bb7_cm_7_1.ewt": {
+      "reference_sha256": "4d0731572684b2192a94decd2e8f8d862afb7f81f2e8882aa92e657e956d69d4",
+      "before_sha256": "1187a1f0dd6021e57705af648788ccb833f15610028e5ee590856285129ae8fc",
+      "before_mtime": "2026-11-14T16:02:02.377005",
+      "expected_sha256": "1187a1f0dd6021e57705af648788ccb833f15610028e5ee590856285129ae8fc",
+      "change": "Preserved byte for byte; preexisting IAR tool-view metadata only."
+    }
+  }
+}

@@ -1,0 +1,254 @@
+{
+  "date": "2026-11-14",
+  "version": 25,
+  "status": "PASS",
+  "target": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui",
+  "scope": "Preserve last ordinary target through1000ms heading hold;40RPM/s entry/CIRCLE speed slew; K29 read-only measured speed/pitch/tilt/PWM. Ordinary algorithm and parameters unchanged.",
+  "protected_inputs": 581,
+  "primary_inputs": 589,
+  "explicit_project_references": {
+    "reason": "Preserve preexisting 16:02 IAR edits; only remove unused track_detect.c compilation from control core because its preexisting erosion_operation signature is incompatible. No source code or compiler/linker setting changed.",
+    "files": {
+      "project/iar/project_config/cyt4bb7_cm_7_1.ewp": {
+        "reference_sha256": "063305e9ad4d23821142929654fe9cef091043cc37a1ef1470f95ae17922b841",
+        "before_sha256": "e577780a0301e76974cc4172c4dd1c75b8690f6df97500ed3f2d93a88cb19152",
+        "before_mtime": "2026-11-14T16:02:02.368995",
+        "expected_sha256": "494a25da68297993995f7f531ecf294c1b9f6d71047becc7361aae8a53291d82",
+        "change": "Only this unused control-core compile-list entry removed; camera-core and source file intact."
+      },
+      "project/iar/project_config/cyt4bb7_cm_7_1.ewt": {
+        "reference_sha256": "4d0731572684b2192a94decd2e8f8d862afb7f81f2e8882aa92e657e956d69d4",
+        "before_sha256": "1187a1f0dd6021e57705af648788ccb833f15610028e5ee590856285129ae8fc",
+        "before_mtime": "2026-11-14T16:02:02.377005",
+        "expected_sha256": "1187a1f0dd6021e57705af648788ccb833f15610028e5ee590856285129ae8fc",
+        "change": "Preserved byte for byte; preexisting IAR tool-view metadata only."
+      }
+    }
+  },
+  "tests": {
+    "groups": 41,
+    "default_timed_entry": 5,
+    "reference_tangent": 14,
+    "legacy": 22,
+    "host_sha256": "971354e3da6fe35664dcb72eab579d8a09c7dfa725a481dea6ebe0a554e4c2ad",
+    "parser": "PASS"
+  },
+  "builds": [
+    {
+      "core": 0,
+      "errors": 0,
+      "warnings": 0,
+      "shared_symbols": {
+        "ring_command_mailbox": {
+          "address": "0x28001040",
+          "bytes": 32
+        },
+        "ring_motion_mailbox": {
+          "address": "0x28001060",
+          "bytes": 32
+        },
+        "ring_diagnostic_mailbox": {
+          "address": "0x28001080",
+          "bytes": 32
+        },
+        "ring_entry_diagnostic_mailbox": {
+          "address": "0x280010a0",
+          "bytes": 32
+        },
+        "ring_geometry_diagnostic_mailbox": {
+          "address": "0x280010c0",
+          "bytes": 32
+        },
+        "ring_topology_diagnostic_mailbox": {
+          "address": "0x280010e0",
+          "bytes": 32
+        },
+        "ring_image_mailbox": {
+          "address": "0x28001100",
+          "bytes": 128
+        },
+        "ring_image_ack_mailbox": {
+          "address": "0x28001180",
+          "bytes": 32
+        },
+        "ring_mouth_diagnostic_mailbox": {
+          "address": "0x280011a0",
+          "bytes": 32
+        }
+      },
+      "hex_checksums": "PASS",
+      "hex_records": 5164,
+      "log": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\build_speed_hold_cm7_0_20261114.log",
+      "outputs": [
+        {
+          "path": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.out",
+          "size": 2049232,
+          "sha256": "9bda7d57d7cc4a717513f6d406830b419b1c4dd20723af59a4b6c84456451714"
+        },
+        {
+          "path": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.hex",
+          "size": 232260,
+          "sha256": "6b3ce0d66b7e61c97f5f1598739e0f85d9fe508dd6bce7911968481d803ec6da"
+        }
+      ]
+    },
+    {
+      "core": 1,
+      "errors": 0,
+      "warnings": 0,
+      "shared_symbols": {
+        "ring_command_mailbox": {
+          "address": "0x28001040",
+          "bytes": 32
+        },
+        "ring_motion_mailbox": {
+          "address": "0x28001060",
+          "bytes": 32
+        },
+        "ring_diagnostic_mailbox": {
+          "address": "0x28001080",
+          "bytes": 32
+        },
+        "ring_entry_diagnostic_mailbox": {
+          "address": "0x280010a0",
+          "bytes": 32
+        },
+        "ring_geometry_diagnostic_mailbox": {
+          "address": "0x280010c0",
+          "bytes": 32
+        },
+        "ring_topology_diagnostic_mailbox": {
+          "address": "0x280010e0",
+          "bytes": 32
+        },
+        "ring_image_mailbox": {
+          "address": "0x28001100",
+          "bytes": 128
+        },
+        "ring_image_ack_mailbox": {
+          "address": "0x28001180",
+          "bytes": 32
+        },
+        "ring_mouth_diagnostic_mailbox": {
+          "address": "0x280011a0",
+          "bytes": 32
+        }
+      },
+      "hex_checksums": "PASS",
+      "hex_records": 3493,
+      "log": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\build_speed_hold_cm7_1_20261114.log",
+      "outputs": [
+        {
+          "path": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.out",
+          "size": 2083732,
+          "sha256": "679d239ef4856e2978d21675fe91d1f2c8814628647c70f08595810731e5b936"
+        },
+        {
+          "path": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.hex",
+          "size": 157101,
+          "sha256": "2431f62623ab01b1dcbef7d09cc99c27184f1a8f2f004ad758419b918c25bb04"
+        }
+      ]
+    }
+  ],
+  "changes": {
+    "project/code/ring.h": {
+      "before": "0a67a2aef8c4f2f61f02566adb5011a6343dcc85e1dc70c2c7ff4754937bced5",
+      "after": "f534e1891f704fd2247cc7db60678ed324902ea406167d945cb36aad815f1d53"
+    },
+    "project/code/ring_link.h": {
+      "before": "7240bb0d3c9966e9fd9195462390bd6446e6ac9a00ca72876ed53ad6526c4def",
+      "after": "85af1410fab9be17c8e790618b4275d14bb86492582afd9ebced918472714712"
+    },
+    "project/code/ring_runtime.c": {
+      "before": "3cd8d081fd8907031efa2c0fbd039039c771aeb94275109a46314b9324886538",
+      "after": "94cc72260ff60318b65290493b67fba2656ed99e45aeb0a4aa8320cdb99bae80"
+    },
+    "project/code/ring_runtime.h": {
+      "before": "c10ca08654df2470ef563537241ae5006a41815742d55f2afae1355ffd60b441",
+      "after": "933b29119fbfc2ad75b6cd3d08f50296e69e214cbd73735b66ed8d814fe5f6b3"
+    },
+    "project/code/ring_uart_diag.h": {
+      "before": "9afaebb6d8b3744f577b7457d38b62ed65cc7bea6553ab27c89f6038c7684d53",
+      "after": "bed6944f19bd2c7c751f8531de7d4f5dcfb453e5aafb7fdf1a47d9830fa1ac5a"
+    },
+    "project/user/main_cm7_1.c": {
+      "before": "09b87b0dd707d8320871643e5365cd2435bc468c9dbb28c3fccb7677da508ce4",
+      "after": "de0576250ca5c503e8cb110d4202aeb836c4eafcbf43ce2eb426f5851dca51c5"
+    },
+    "project/tests/run_ring_tests.ps1": {
+      "before": "7422843c479aa2dde2004690ec0b42e1e3bc9e721ed4bc2a79abc9668d632fcc",
+      "after": "ecbfe036324918b9714e4e80e3712b68d6a46687452e811f05e5192a03356ef6"
+    },
+    "project/tests/verify_observed_mouth_isolation.cjs": {
+      "before": "527f645f80c20a5fbc6f094e9ef1506b69ac4f572756cab3a6a6de89bcd85fef",
+      "after": "1af9684a9795c0ecbb1455425cba5828e34a86091e4ebeb3a8ab243a34406198"
+    },
+    "project/tests/test_ring_maneuver.c": {
+      "before": "0f5b69d3621d0d7b7536460fb66f1cecc996e709c163a34db554e472e2b4bff5",
+      "after": "e2aad8d10487b6fbfc7c58ae9429ee1131a614e5ec57522a95d0ad23d0ecbe26"
+    },
+    "project/tests/test_ring_timed_integration.c": {
+      "before": "a0313d8bfcb3781ffe56d5b174f5a0b108727709faa2ba7efceb03ec1b7d53d4",
+      "after": "f978fdfd6e2b0a2dddb1048d2a586e62bd530bb45d0ad38e7f34e07513b0ba05"
+    },
+    "project/tests/test_ring_uart_fifo.c": {
+      "before": "adc240a33b5d3a4915186bcbfd7016d4351647e10c6f60450783ea7755f3a20f",
+      "after": "989e3d2a10a06b7b0bea34af9b197eba2aacdd2d7f890ce3567dac850f3fe966"
+    },
+    "project/tests/test_ring_uart_protocol.c": {
+      "before": "87e4059d1c1b39baa71a93f5a6920b2d733a95634273858f4be4a0aeeebb4045",
+      "after": "bba4f60ae00e47f15e4fe336700194710a53a10517b81dfa3fda7f9a2c161432"
+    },
+    "project/tests/test_ring_diag_isolation.c": {
+      "before": "6397802457022466eb528ffe602dc7b713c1e2f9be0923e219b123202cf3598a",
+      "after": "2051542a3fdc3fe71173e835a534fc2309037c698b82e448cf44652ed31529ed"
+    },
+    "readme.md": {
+      "before": "b9078c52b869c5e6cadc6de34bd1b90375400e0f26d67d64bfd91d221d990fa8",
+      "after": "b2986465887db37140f89213527ae991569004e7e1e965651eb2193e2ae67430"
+    },
+    "uart1_ring_diagnostics.md": {
+      "before": "94ec200066afa4a90f3cf86903d6f627c533107240bf595e33c73f0b4cc12e4d",
+      "after": "5b835ad4c4dd3bcbe0b52126a34a8b8003ef503c059d7a34a0d98284bc6b8e9e"
+    },
+    "project/tests/test_ring_tangent_transport.c": {
+      "before": "a84ccdf5ff7c45da888518e3668f6f214c57b1495ee54ce9deccf7d683dda792",
+      "after": "fd5a9e26bd975b1e7c7175b4ead12ea4f7a005761d2e286913000f95adf69f97"
+    },
+    "project/tests/test_ring_force.c": {
+      "before": "acf99dd1e43397d70a55c176bcb835b637271357418d2503684f20217a30bb6a",
+      "after": "8b9e17357c5ebc84002d3a47e5ad3bf32d494da120934b4619fc31c6509dedd4"
+    },
+    "project/iar/project_config/cyt4bb7_cm_7_1.ewp": {
+      "before": "e577780a0301e76974cc4172c4dd1c75b8690f6df97500ed3f2d93a88cb19152",
+      "after": "494a25da68297993995f7f531ecf294c1b9f6d71047becc7361aae8a53291d82"
+    },
+    "project/code/ring_entry_speed.h": {
+      "before": null,
+      "after": "a3f4d0245363de2114425da06aa7935eeb5327408147a7a91c68fb6f3936f4b1"
+    },
+    "project/tests/test_ring_entry_speed.c": {
+      "before": null,
+      "after": "58a4bb200333f774d3a850a3f57de9efa454d01623904212f894e2a52fe74b7b"
+    },
+    "project/tests/test_ring_entry_uart_budget.c": {
+      "before": null,
+      "after": "38763300ae3186efe7cb4110795509b6fa0d14b432dcee94d44feb8f64a6e9ed"
+    },
+    "project/tests/speed_hold_project_inputs_20261114.json": {
+      "before": null,
+      "after": "10d39e75409bb757844f04ea15cf90a5b00aff3e3c3bcb3fd04a0401cd4fd3ea"
+    }
+  },
+  "backup": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\_backup_before_speed_hold_fix_20261114",
+  "serial": {
+    "port": "COM9",
+    "baud": 115200,
+    "pair": "#PAIR,25,25,1",
+    "receiver_restarted": false,
+    "serialWrites": 0
+  },
+  "hardware_validation": "Pending. Tests validate target commands, nonblocking transport and synthetic visual state/handoff; not physical balance dynamics or full-lap vehicle success.",
+  "packaging": "Engineering HEX/OUT only; no separate package; no flashing"
+}

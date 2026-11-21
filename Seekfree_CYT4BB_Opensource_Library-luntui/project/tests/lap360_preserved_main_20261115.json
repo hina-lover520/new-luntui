@@ -1,0 +1,7 @@
+{
+  "file": "project/user/main_cm7_1.c",
+  "reference_sha256": "09b87b0dd707d8320871643e5365cd2435bc468c9dbb28c3fccb7677da508ce4",
+  "preserved_sha256": "6ec8a7c0e1978133fe394fe29f920fa9e655939b2969ea8cf84ac68170c3c81a",
+  "raw_sha256": "40c409a1be4e6006757ca4b22fa5c2fc6682f08f8a491559e8feb19d17184ef1",
+  "details": "Pre-existing user tune: LINE_FOLLOW_FWD_SPEED65, LINE_FOLLOW_FWD_TILT4.5, FWD_SPEED_SMALL150, FWD_SPEED_LARGE125. Keep main byte-identical; normalize only the existing read-only ring observation hook."
+}

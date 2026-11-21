@@ -1,0 +1,361 @@
+/*********************************************************************************************************************
+ * Name:blance.c
+ *      轮腿平衡控制 (两轮自平衡)
+ *
+ *      控制结构 (串级三环):
+ *        角度环   (外环): 四元数俯仰角 s_angle.agy -> 目标角速度
+ *        角速度环 (中环): 卡尔曼滤波角速度 imu660rb_gyro_y_l -> 目标轮速(RPM)
+ *        电机速度环(内环): 目标轮速(RPM) -> 占空比 (左右各一个, 保证两轮同速)
+ *
+ *      数据来源 (在 cm7_1_isr.c 的 pit0_ch0_isr 中已更新):
+ *        s_angle            -> my_quaternion() 四元数解算出的欧拉角 (单位: 度)
+ *        imu660rb_gyro_y_l  -> kaermanb_Updata_1() 卡尔曼滤波后的陀螺仪 (单位: raw, 14.3 raw ≈ 1°/s)
+ *
+ *      速度反馈: 无刷驱动回传的 receive_left/right_speed_data (单位 RPM),
+ *      由 uart4_isr -> small_driver_control_callback 解析, 需周期性 small_driver_get_speed() 请求刷新。
+ *
+ *      输出: 小驱动两路无刷电机 small_driver_set_duty, 占空比 -10000 ~ 10000。
+ * Created on:
+ * Author:
+********************************************************************************************************************/
+
+#include "zf_common_headfile.h"
+#include <math.h>
+#include <stdlib.h>
+#include "pid.h"
+#include "ztjx.h"
+#include "quaternion.h"
+#include "small_driver_uart_control.h"
+#include "blance.h"
+
+#define BALANCE_MAX_INTEGRAL      (100.0f)        // PID 积分限幅
+#define BALANCE_DUTY_MAX_PERCENT  (30.0f)         // 最大占空比 30% (整定安全限幅)
+#define BALANCE_SPEED_REQ_PERIOD  (50)            // 每 50 次 balance_star (1ms×50=50ms) 请求一次速度回传
+#define BALANCE_STARTUP_DELAY_MS  (6000)          // 上电延迟启动(ms): 先等四元数解算收敛, 期间轮子/舵机保持不动, 蜂鸣器最后一秒响
+
+// ---- 舵机站好后轮子才启动: 角度环 P 先升到 700 帮站稳, 再降回 400 稳态 ----
+#define BALANCE_KP_NORMAL         (400.0f)        // 稳态角度环 P (轮子启动后最终回落到这里)
+#define BALANCE_KP_STANDUP        (700.0f)        // 轮子刚启动时的角度环 P 峰值 (强回正, 帮站稳)
+#define BALANCE_KP_RAMP           (5.0f)          // P 每 5ms 调整步长 (400->700 约 300ms)
+#define BALANCE_KP_HOLD_MS        (500)           // 轮子启动后 P 保持 700 的时间(ms), 之后降回 400
+
+// ---- 位置环 (最外环): 轮速积分得到位置, 位置误差 -> 目标角度 (定点保持) ----
+#define BALANCE_POSITION_MAX_INTEGRAL (100.0f)   // 位置环积分限幅
+#define BALANCE_POSITION_MAX_ANGLE    (10.0f)    // 位置环输出限幅(度): 目标角最大倾斜
+
+PIDController balance_angle;                    // 角度环 (外环)
+PIDController balance_gyro;                     // 角速度环 (中环)
+PIDController balance_wheel_l;                  // 左轮电机速度环 (内环)
+PIDController balance_wheel_r;                  // 右轮电机速度环 (内环)
+PIDController balance_position;                 // 位置环(最外环): 位置误差 -> 目标角度
+
+float balance_target_angle = 0.0f;              // 目标俯仰角 (度), 竖直站立为 0
+float balance_mech_zero   = 2.63f;              // 机械零点 (度): 车体物理水平(平衡位)时 s_angle.agy 的读数
+float balance_gyro_zero   = -8.47f;            // 角速度零点 (raw): 静止时 imu660rb_gyro_y_l 的读数, 需标定(会漂移)
+
+float balance_angle_out = 0.0f;                 // 角度环输出 (目标角速度)
+float balance_gyro_out  = 0.0f;                 // 角速度环输出 (目标轮速 RPM)
+int   balance_left_duty  = 0;                   // 左轮占空比
+int   balance_right_duty = 0;                   // 右轮占空比
+
+float balance_target_position   = 0.0f;         // 位置环目标(定点), 用户可设 (单位: 轮转数, 相对起点)
+float balance_position_measured = 0.0f;         // 位置环反馈(轮速积分, 轮转数)
+float balance_position_out      = 0.0f;         // 位置环输出(度), 叠加到目标角度
+float balance_forward_speed     = 0.0f;         // 前向速度(RPM), 调试用
+
+uint8  balance_stand_up_done = 0;               // 0=起立中, 1=已起立(进入轮子+舵机平衡)
+static uint32 balance_startup_cnt = 0;          // 上电延迟启动计数(1ms/次), balance_star 与 servo_balance_star 共用
+
+//===================================================================================================================
+// 舵机辅助平衡 (两轴: 俯仰 + 横滚)
+//   原理: 车身向某侧倾斜时, 用四个腿舵机把重心往反方向顶, 辅助轮子一起把车身扶正。
+//   与轮子平衡环并行, 在同一个 1ms 中断里 balance_star() 之后调用 servo_balance_star()。
+//   PID 输出单位是"舵机角度偏移(度)", 叠加到每个舵机的中性角上。
+//===================================================================================================================
+#define SERVO_BALANCE_MAX_ANGLE    (30.0f)   // 每轴舵机偏移限幅(度), 防止舵机猛打/顶到限位
+#define SERVO_ANGLE_LIMIT          (35.0f)   // 最终舵机角相对中性角的限幅(度): 中性±35
+#define SERVO_ROLL_GAIN            (3.0f)    // 横滚放大倍数: 横滚舵机幅度不明显就往大调
+
+static PIDController servo_pitch_pid;       // 俯仰辅助 (角度误差 -> 舵机偏移 度)
+static PIDController servo_roll_pid;        // 横滚辅助 (角度误差 -> 舵机偏移 度)
+
+// ============ 四条腿舵机配置 (按实际接线 / 机械中位改这里) ============
+// 每条腿: PIN=接的PWM口, NEUTRAL=初始/中性角(度), PITCH_DIR/ROLL_DIR=俯仰/横滚方向
+//   - 改接线:               改 PIN
+//   - 改初始角度:           改 NEUTRAL
+//   - 方向反了(越顶越倒):   把该腿 PITCH_DIR / ROLL_DIR 取反
+// 前左腿
+#define SERVO_FL_PIN         SERVO_MOTOR_PWM1
+#define SERVO_FL_NEUTRAL     (55.0f)
+#define SERVO_FL_PITCH_DIR   (1.0f)
+#define SERVO_FL_ROLL_DIR    (-1.0f)
+// 前右腿
+#define SERVO_FR_PIN         SERVO_MOTOR_PWM2
+#define SERVO_FR_NEUTRAL     (120.0f)
+#define SERVO_FR_PITCH_DIR   (-1.0f)
+#define SERVO_FR_ROLL_DIR    (-1.0f)
+// 后左腿
+#define SERVO_RL_PIN         SERVO_MOTOR_PWM3
+#define SERVO_RL_NEUTRAL     (165.0f)
+#define SERVO_RL_PITCH_DIR   (1.0f)
+#define SERVO_RL_ROLL_DIR    (1.0f)
+// 后右腿
+#define SERVO_RR_PIN         SERVO_MOTOR_PWM4
+#define SERVO_RR_NEUTRAL     (20.0f)
+#define SERVO_RR_PITCH_DIR   (-1.0f)
+#define SERVO_RR_ROLL_DIR    (1.0f)
+
+// ---- 站立阶段判定 ----
+#define SERVO_STANDUP_HOLD_MS      (1500)   // 站立阶段时长(ms): 舵机保持中立不动, 站满这么久后才让舵机 PID 运行
+
+float servo_roll_zero   = -0.99f;           // 横滚零点(度): 车身水平时 s_angle.agx 的读数
+float servo_target_roll = 0.0f;             // 目标横滚角(度)
+float servo_pitch_out   = 0.0f;             // 俯仰辅助输出(度), 调试
+float servo_roll_out    = 0.0f;             // 横滚辅助输出(度), 调试
+float servo_angle[4]    = {90.0f, 90.0f, 90.0f, 90.0f};   // 四个舵机最终角度(度), 调试
+
+// 四个舵机全部打到中性角
+static void servo_set_neutral_all(void)
+{
+    pwm_set_duty(SERVO_FL_PIN, (uint32)SERVO_MOTOR_DUTY(SERVO_FL_NEUTRAL));   // 前左
+    pwm_set_duty(SERVO_FR_PIN, (uint32)SERVO_MOTOR_DUTY(SERVO_FR_NEUTRAL));   // 前右
+    pwm_set_duty(SERVO_RL_PIN, (uint32)SERVO_MOTOR_DUTY(SERVO_RL_NEUTRAL));   // 后左
+    pwm_set_duty(SERVO_RR_PIN, (uint32)SERVO_MOTOR_DUTY(SERVO_RR_NEUTRAL));   // 后右
+}
+
+// 站立计时(1ms/次), 在 servo_balance_Init 清零
+static uint32 servo_standup_time_cnt = 0;
+
+//-------------------------------------------------------------------------------------------------------------------
+// 函数简介      轮腿平衡控制初始化
+// 参数说明     angle_p/i/d   角度环 PID 参数 (俯仰角 -> 目标角速度)
+// 参数说明     gyro_p/i/d    角速度环 PID 参数 (目标角速度 -> 目标轮速 RPM)
+// 参数说明     wheel_p/i/d   电机速度环 PID 参数 (目标轮速 RPM -> 占空比)
+//-------------------------------------------------------------------------------------------------------------------
+void balance_Init(float angle_p, float angle_i, float angle_d,
+                  float gyro_p,  float gyro_i,  float gyro_d,
+                  float wheel_p, float wheel_i, float wheel_d)
+{
+    PID_Init(&balance_angle,   angle_p, angle_i, angle_d);
+    PID_Init(&balance_gyro,    gyro_p,  gyro_i,  gyro_d);
+    PID_Init(&balance_wheel_l, wheel_p, wheel_i, wheel_d);
+    PID_Init(&balance_wheel_r, wheel_p, wheel_i, wheel_d);
+    PID_Init(&balance_position, 0.0f, 0.0f, 0.0f);   // 位置环默认关闭, 用 balance_position_Init 打开
+
+    balance_angle_out = 0.0f;
+    balance_gyro_out  = 0.0f;
+    balance_left_duty  = 0;
+    balance_right_duty = 0;
+
+    balance_target_position   = 0.0f;
+    balance_position_measured = 0.0f;
+    balance_position_out      = 0.0f;
+    balance_forward_speed     = 0.0f;
+
+    small_driver_set_duty(&small_driver_value, 0, 0);           // 电机输出清零
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// 函数简介      位置环(定点)初始化, P>0 才生效; P 越大位置保持越硬(太大易抖), I 消除稳态漂移
+//-------------------------------------------------------------------------------------------------------------------
+void balance_position_Init(float p, float i, float d)
+{
+    PID_Init(&balance_position, p, i, d);
+    balance_target_position   = 0.0f;
+    balance_position_measured = 0.0f;
+    balance_position_out      = 0.0f;
+    balance_forward_speed     = 0.0f;
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// 函数简介      轮腿平衡控制主函数, 在 PIT 中断中周期调用 (1ms)
+//-------------------------------------------------------------------------------------------------------------------
+void balance_star(void)
+{
+    static uint32 wheel_on_cnt = 0;   // 轮子启动后计时(ms), 驱动 P ramp 时间线; 舵机站起前清零
+
+    // ---- 上电延迟启动: 先等四元数解算收敛, 期间轮子保持 0, 蜂鸣器最后一秒响 ----
+    if(balance_startup_cnt < BALANCE_STARTUP_DELAY_MS)
+    {
+        balance_startup_cnt++;
+
+        // 蜂鸣器: 只在延迟最后一秒响, 其余静音; 最后一拍(==DELAY)自动关掉
+        if(balance_startup_cnt >= (BALANCE_STARTUP_DELAY_MS - 1000) && balance_startup_cnt < BALANCE_STARTUP_DELAY_MS)
+            gpio_set_level(BUZZER_PIN, GPIO_HIGH);
+        else
+            gpio_set_level(BUZZER_PIN, GPIO_LOW);
+
+        balance_left_duty  = 0;
+        balance_right_duty = 0;
+        small_driver_set_duty(&small_driver_value, 0, 0);
+        return;
+    }
+
+    // ---- 起立阶段: 舵机负责把车身顶起来, 轮子保持 0, 等舵机站好之后再动 ----
+    if(!balance_stand_up_done)
+    {
+        wheel_on_cnt = 0;               // 站起前清零轮子启动计时
+        balance_left_duty  = 0;
+        balance_right_duty = 0;
+        small_driver_set_duty(&small_driver_value, 0, 0);
+        return;
+    }
+
+    wheel_on_cnt++;                     // 站起后轮子开始计时
+
+    // ============ 多速率串级: balance_star 每 1ms 调用一次 ============
+    // 外环慢、内环快: 位置环+角度环 5ms -> 角速度环 2ms -> 电机速度环 1ms
+    // 外环输出保持(零阶保持)到下一个周期, 内环直接用上一次保持的值。
+    static uint8 angle_cnt = 0;    // 位置环/角度环分频计数 (5ms)
+    static uint8 gyro_cnt  = 0;    // 角速度环分频计数 (2ms)
+
+    // ---- 位置环 + 角度环 (最外环, 每 5ms) ----
+    if(++angle_cnt >= 5)
+    {
+        angle_cnt = 0;
+
+        // 位置环: 轮速积分得到位置 (5ms 积分: RPM -> 轮转数)
+        balance_forward_speed = (small_driver_value.receive_left_speed_data - small_driver_value.receive_right_speed_data) * 0.5f;  // 前向速度(RPM)
+        balance_position_measured += balance_forward_speed * (5.0f / 60000.0f);
+        balance_position_out = PID_Update(&balance_position,
+                                          balance_target_position,
+                                          balance_position_measured,
+                                          BALANCE_POSITION_MAX_INTEGRAL);
+        balance_position_out = func_limit_ab(balance_position_out, -BALANCE_POSITION_MAX_ANGLE, BALANCE_POSITION_MAX_ANGLE);
+
+        // ---- 角度环 P 的 ramp: 轮子启动后先升到 700 帮站稳, 保持一段时间再降回 400 稳态 ----
+        {
+            float kp_target = (wheel_on_cnt < BALANCE_KP_HOLD_MS) ? BALANCE_KP_STANDUP : BALANCE_KP_NORMAL;
+            if(balance_angle.kp < kp_target)
+                balance_angle.kp = fminf(balance_angle.kp + BALANCE_KP_RAMP, kp_target);
+            else if(balance_angle.kp > kp_target)
+                balance_angle.kp = fmaxf(balance_angle.kp - BALANCE_KP_RAMP, kp_target);
+        }
+
+        // 角度环: 俯仰角 -> 目标角速度 (D 已按 5ms 重标定, 见 main 里 balance_Init 注释)
+        balance_angle_out = PID_Update(&balance_angle,
+                                       balance_target_angle + balance_position_out + balance_mech_zero,
+                                       s_angle.agy,
+                                       BALANCE_MAX_INTEGRAL);
+    }
+
+    // ---- 角速度环 (中环, 每 2ms) ----
+    if(++gyro_cnt >= 2)
+    {
+        gyro_cnt = 0;
+        balance_gyro_out = PID_Update(&balance_gyro,
+                                      balance_angle_out,
+                                      imu660rb_gyro_y_l - balance_gyro_zero,
+                                      BALANCE_MAX_INTEGRAL);
+    }
+
+    // ---- 电机速度环 (内环, 每 1ms) ----
+    float left_pct  = PID_Update(&balance_wheel_l, +balance_gyro_out, small_driver_value.receive_left_speed_data,  BALANCE_MAX_INTEGRAL);
+    float right_pct = PID_Update(&balance_wheel_r, -balance_gyro_out, small_driver_value.receive_right_speed_data, BALANCE_MAX_INTEGRAL);
+
+    // ---- (预留) 转向环: 差动目标轮速, 暂为 0 ----
+    // left_pct  += turn_out;
+    // right_pct += turn_out;
+
+    // 占空比转换 (每 1ms): 限幅 ±30% 再 ×(PWM_DUTY_MAX/100)
+    left_pct  = func_limit_ab(left_pct,  -BALANCE_DUTY_MAX_PERCENT, BALANCE_DUTY_MAX_PERCENT) * (PWM_DUTY_MAX / 100.0f);
+    right_pct = func_limit_ab(right_pct, -BALANCE_DUTY_MAX_PERCENT, BALANCE_DUTY_MAX_PERCENT) * (PWM_DUTY_MAX / 100.0f);
+
+    balance_left_duty  = (int)left_pct;
+    balance_right_duty = (int)right_pct;
+
+    // 轮子实际方向与占空比相反(实测 速度≈-占空比), 这里整体取反修正方向 + 让内环恢复负反馈
+    small_driver_set_duty(&small_driver_value, -balance_left_duty, -balance_right_duty);
+
+    // ---- 周期性请求速度回传 (驱动板需收到请求才回传速度, 参考例程) ----
+    static uint8 speed_req_cnt = 0;
+    if(++speed_req_cnt >= BALANCE_SPEED_REQ_PERIOD)
+    {
+        speed_req_cnt = 0;
+        small_driver_get_speed(&small_driver_value);
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// 函数简介      舵机辅助平衡初始化
+// 参数说明     pitch_p/d   俯仰辅助 PD (角度误差(度) -> 舵机偏移(度))
+// 参数说明     roll_p/d    横滚辅助 PD
+//-------------------------------------------------------------------------------------------------------------------
+void servo_balance_Init(float pitch_p, float pitch_d, float roll_p, float roll_d)
+{
+    PID_Init(&servo_pitch_pid, pitch_p, 0.0f, pitch_d);
+    PID_Init(&servo_roll_pid,  roll_p,  0.0f, roll_d);
+    servo_pitch_out = 0.0f;
+    servo_roll_out  = 0.0f;
+    balance_stand_up_done  = 0;          // 上电先进入"舵机起立"阶段
+    servo_standup_time_cnt = 0;
+
+    pwm_init(SERVO_FL_PIN, SERVO_MOTOR_FREQ, 0);                // 前左 50Hz 舵机 PWM
+    pwm_init(SERVO_FR_PIN, SERVO_MOTOR_FREQ, 0);                // 前右
+    pwm_init(SERVO_RL_PIN, SERVO_MOTOR_FREQ, 0);                // 后左
+    pwm_init(SERVO_RR_PIN, SERVO_MOTOR_FREQ, 0);                // 后右
+    servo_angle[0] = SERVO_FL_NEUTRAL;
+    servo_angle[1] = SERVO_FR_NEUTRAL;
+    servo_angle[2] = SERVO_RL_NEUTRAL;
+    servo_angle[3] = SERVO_RR_NEUTRAL;
+    servo_set_neutral_all();
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+// 函数简介      舵机辅助平衡主函数, 在 balance_star() 之后、同一 1ms 中断里调用
+//-------------------------------------------------------------------------------------------------------------------
+void servo_balance_star(void)
+{
+    // ---- 上电延迟启动: 与 balance_star 共用同一计数器, 期间舵机保持中立不动 ----
+    if(balance_startup_cnt < BALANCE_STARTUP_DELAY_MS)
+    {
+        servo_set_neutral_all();
+        return;
+    }
+
+    // ---- 站立阶段: 舵机保持中性别动, 站满时长后才让舵机 PID 运行 ----
+    if(!balance_stand_up_done)
+    {
+        servo_set_neutral_all();
+        servo_standup_time_cnt++;
+
+        // 站立动作完整完成(车身稳定)后, 才切到平衡 PID
+        if(servo_standup_time_cnt >= SERVO_STANDUP_HOLD_MS)
+            balance_stand_up_done = 1;
+        return;
+    }
+
+    // 俯仰参考与轮子平衡环一致; 横滚参考 = 目标横滚 + 横滚零点
+    float pitch_ref = balance_target_angle + balance_mech_zero;
+    float roll_ref  = servo_target_roll + servo_roll_zero;
+
+    // 两轴 PD: 角度误差 -> 舵机偏移(度)
+    servo_pitch_out = PID_Update(&servo_pitch_pid, pitch_ref, s_angle.agy, SERVO_BALANCE_MAX_ANGLE);
+    servo_roll_out  = PID_Update(&servo_roll_pid,  roll_ref,  s_angle.agx, SERVO_BALANCE_MAX_ANGLE);
+    servo_pitch_out = func_limit_ab(servo_pitch_out, -SERVO_BALANCE_MAX_ANGLE, SERVO_BALANCE_MAX_ANGLE);
+    servo_roll_out  = func_limit_ab(servo_roll_out * SERVO_ROLL_GAIN, -SERVO_BALANCE_MAX_ANGLE, SERVO_BALANCE_MAX_ANGLE);
+
+    // 前左腿
+    servo_angle[0] = func_limit_ab(SERVO_FL_NEUTRAL + SERVO_FL_PITCH_DIR * servo_pitch_out + SERVO_FL_ROLL_DIR * servo_roll_out,
+                                   SERVO_FL_NEUTRAL - SERVO_ANGLE_LIMIT, SERVO_FL_NEUTRAL + SERVO_ANGLE_LIMIT);
+    servo_angle[0] = func_limit_ab(servo_angle[0], (float)SERVO_MOTOR_L_MAX, (float)SERVO_MOTOR_R_MAX);   // 再卡物理范围 10~170
+    pwm_set_duty(SERVO_FL_PIN, (uint32)SERVO_MOTOR_DUTY(servo_angle[0]));
+
+    // 前右腿
+    servo_angle[1] = func_limit_ab(SERVO_FR_NEUTRAL + SERVO_FR_PITCH_DIR * servo_pitch_out + SERVO_FR_ROLL_DIR * servo_roll_out,
+                                   SERVO_FR_NEUTRAL - SERVO_ANGLE_LIMIT, SERVO_FR_NEUTRAL + SERVO_ANGLE_LIMIT);
+    servo_angle[1] = func_limit_ab(servo_angle[1], (float)SERVO_MOTOR_L_MAX, (float)SERVO_MOTOR_R_MAX);   // 再卡物理范围 10~170
+    pwm_set_duty(SERVO_FR_PIN, (uint32)SERVO_MOTOR_DUTY(servo_angle[1]));
+
+    // 后左腿
+    servo_angle[2] = func_limit_ab(SERVO_RL_NEUTRAL + SERVO_RL_PITCH_DIR * servo_pitch_out + SERVO_RL_ROLL_DIR * servo_roll_out,
+                                   SERVO_RL_NEUTRAL - SERVO_ANGLE_LIMIT, SERVO_RL_NEUTRAL + SERVO_ANGLE_LIMIT);
+    servo_angle[2] = func_limit_ab(servo_angle[2], (float)SERVO_MOTOR_L_MAX, (float)SERVO_MOTOR_R_MAX);   // 再卡物理范围 10~170
+    pwm_set_duty(SERVO_RL_PIN, (uint32)SERVO_MOTOR_DUTY(servo_angle[2]));
+
+    // 后右腿
+    servo_angle[3] = func_limit_ab(SERVO_RR_NEUTRAL + SERVO_RR_PITCH_DIR * servo_pitch_out + SERVO_RR_ROLL_DIR * servo_roll_out,
+                                   SERVO_RR_NEUTRAL - SERVO_ANGLE_LIMIT, SERVO_RR_NEUTRAL + SERVO_ANGLE_LIMIT);
+    servo_angle[3] = func_limit_ab(servo_angle[3], (float)SERVO_MOTOR_L_MAX, (float)SERVO_MOTOR_R_MAX);   // 再卡物理范围 10~170
+    pwm_set_duty(SERVO_RR_PIN, (uint32)SERVO_MOTOR_DUTY(servo_angle[3]));
+}

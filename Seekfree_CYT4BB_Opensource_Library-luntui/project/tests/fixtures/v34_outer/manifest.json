@@ -1,0 +1,14 @@
+[
+  {
+    "fixture": "v34_outer_snapshot_0",
+    "source": "capture_20261120_192258_126_c0abb4_boot_001_epoch_1_image_6_reason_11.bin",
+    "sha256": "2dc36060e68a94478e39edc1c115076e20d81187843a601acfd51ae011ffd1dc",
+    "description": "Actual v33 ring-control release image; commitment and previous motion must be explicitly prepared by host tests."
+  },
+  {
+    "fixture": "v34_outer_snapshot_1",
+    "source": "capture_20261120_192258_126_c0abb4_boot_002_epoch_1_image_6_reason_11.bin",
+    "sha256": "0c4403dbc0558a24f9b9ef0a0608a97341ef9ee5dc496ca1a928cd46d2144db3",
+    "description": "Actual v33 ring-control release image; commitment and previous motion must be explicitly prepared by host tests."
+  }
+]

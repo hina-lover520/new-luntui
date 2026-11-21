@@ -1,0 +1,199 @@
+{
+  "date": "2026-11-14",
+  "version": 22,
+  "status": "PASS",
+  "target": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui",
+  "scope": "Ring-only force budget100deg/1500ms/2.5rev; same turning rate and authority. Entry gates and ordinary tracking unchanged.",
+  "protected_inputs": 581,
+  "primary_inputs": 589,
+  "tests": {
+    "groups": 36,
+    "production": 14,
+    "legacy": 22,
+    "host_sha256": "448ad87e7c94772300e44d2a38d1cf1b1252c1ab208322190ec81c3a537bb96e",
+    "parser": "PASS"
+  },
+  "builds": [
+    {
+      "core": 0,
+      "errors": 0,
+      "warnings": 0,
+      "shared_symbols": {
+        "ring_command_mailbox": {
+          "address": "0x28001040",
+          "bytes": 32
+        },
+        "ring_motion_mailbox": {
+          "address": "0x28001060",
+          "bytes": 32
+        },
+        "ring_diagnostic_mailbox": {
+          "address": "0x28001080",
+          "bytes": 32
+        },
+        "ring_entry_diagnostic_mailbox": {
+          "address": "0x280010a0",
+          "bytes": 32
+        },
+        "ring_geometry_diagnostic_mailbox": {
+          "address": "0x280010c0",
+          "bytes": 32
+        },
+        "ring_topology_diagnostic_mailbox": {
+          "address": "0x280010e0",
+          "bytes": 32
+        },
+        "ring_image_mailbox": {
+          "address": "0x28001100",
+          "bytes": 128
+        },
+        "ring_image_ack_mailbox": {
+          "address": "0x28001180",
+          "bytes": 32
+        },
+        "ring_mouth_diagnostic_mailbox": {
+          "address": "0x280011a0",
+          "bytes": 32
+        }
+      },
+      "hex_checksums": "PASS",
+      "hex_records": 5102,
+      "outputs": [
+        {
+          "path": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.out",
+          "size": 2039864,
+          "sha256": "b9240b2911e67326f53ecba63e14e9e04e97aedb93c05be96c8eccaffa912e2f"
+        },
+        {
+          "path": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.hex",
+          "size": 229470,
+          "sha256": "1510413a90ef13aad93f46af2dca47efa6f646c41230c26bccf8e75fba658194"
+        }
+      ]
+    },
+    {
+      "core": 1,
+      "errors": 0,
+      "warnings": 0,
+      "shared_symbols": {
+        "ring_command_mailbox": {
+          "address": "0x28001040",
+          "bytes": 32
+        },
+        "ring_motion_mailbox": {
+          "address": "0x28001060",
+          "bytes": 32
+        },
+        "ring_diagnostic_mailbox": {
+          "address": "0x28001080",
+          "bytes": 32
+        },
+        "ring_entry_diagnostic_mailbox": {
+          "address": "0x280010a0",
+          "bytes": 32
+        },
+        "ring_geometry_diagnostic_mailbox": {
+          "address": "0x280010c0",
+          "bytes": 32
+        },
+        "ring_topology_diagnostic_mailbox": {
+          "address": "0x280010e0",
+          "bytes": 32
+        },
+        "ring_image_mailbox": {
+          "address": "0x28001100",
+          "bytes": 128
+        },
+        "ring_image_ack_mailbox": {
+          "address": "0x28001180",
+          "bytes": 32
+        },
+        "ring_mouth_diagnostic_mailbox": {
+          "address": "0x280011a0",
+          "bytes": 32
+        }
+      },
+      "hex_checksums": "PASS",
+      "hex_records": 3320,
+      "outputs": [
+        {
+          "path": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.out",
+          "size": 2052504,
+          "sha256": "69b99d1aa474fa8d172c00223b3628661215aee62f6fea1b6decd3a86e7fbbd8"
+        },
+        {
+          "path": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.hex",
+          "size": 149316,
+          "sha256": "4bd8824681ac644c7bb72c9f492db5ce2325b5b68888095e0506fed531075af2"
+        }
+      ]
+    }
+  ],
+  "changes": {
+    "project\\code\\ring.h": {
+      "before": "82db15aadd7b413ce2ee6303a3f6b73bb209a425f8caccdf2061c6bfbbb586fb",
+      "after": "81a65bacc67b7f04431097f3a47fbe4d3fef51d5b8e293d8a39ca90a5abb4241"
+    },
+    "project\\code\\ring_link.h": {
+      "before": "106437071595ee27f44c4f6dd2cb8d5bbbd464c856146e2b9188ce2ce2a35d68",
+      "after": "ce3e92494182b4b5df3b3447bdf07e11481d2537997815d295372217f6f305ca"
+    },
+    "project\\code\\ring_uart_diag.h": {
+      "before": "30eecca8415ac2a82da4cb3084e1987e031d6f9617ee2eaec82d7d80358b49cf",
+      "after": "91b54d74d51772d3efe54d2238b6cd84dceafbc0e3f03e9006bd69e49c5c45e6"
+    },
+    "project\\tests\\run_ring_tests.ps1": {
+      "before": "1a899feda7bfc0b63037c455d6a5879b20d0e95c2e22ed6b4700bb73a59eb700",
+      "after": "cef59bcd4c651e9e03b984e8dfd62d026b07f11e5da4bc5ad2cedde875fcdf21"
+    },
+    "project\\tests\\test_ring_diag_isolation.c": {
+      "before": "15943aa30a733e8be3307468c78b4057bfcf9e5c0d2634e5deae7b82e8819ff1",
+      "after": "8d1b2848be20a952bd328d96d2cfaf507fe7f12a95944f75b7eecd2c766004f4"
+    },
+    "project\\tests\\test_ring_entry75.c": {
+      "before": "ee0f044822650158a3fe8a4c47cbedec9747d7a9980893f1e24c997977fa70c6",
+      "after": "6868aa32259b91230eb9a53599b7e4c86700474b98ab5a87ec2ad962de16af4c"
+    },
+    "project\\tests\\test_ring_force.c": {
+      "before": "79e3ef10c88c930644c336924710a8fbd3a40a7183fb8f70e53d30f258afda32",
+      "after": "34afaabb3076a5e4d6929afb87a0d65d37dffaf64a4865d53b761edab39ce7aa"
+    },
+    "project\\tests\\test_ring_normal_path.c": {
+      "before": "c9997df86ed084326ac101994d10157d1cc0f3702d1989bde42c5352ca6ff287",
+      "after": "99b7a9bab1f9fd9854288e4c90687eedbd76269f1da494d736455adda8595c2b"
+    },
+    "project\\tests\\test_ring_tangent_route.c": {
+      "before": "55960e3c919e40d315803364940ee464d062ba444cef5de4fd71c9d3409a4717",
+      "after": "c23736804597b5a8588a7c3c8e8aeafd4ae10b51f0456c738e9b6bfbd818bce6"
+    },
+    "project\\tests\\test_ring_tangent_transport.c": {
+      "before": "a609460095018bb2647e61d0bb12a17b90fc4045c2b03df8185dd4cf9f5df280",
+      "after": "c7aee552b47522188c9dab1ffc034d2fcc92436e4852d96ec32d789cd4bcd244"
+    },
+    "project\\tests\\test_ring_uart_fifo.c": {
+      "before": "6c3a5bbe61b797d6c730c8f9c7401419fe400c11ef5e49319120be0e0a7fb583",
+      "after": "73c214c51437c4ef6f2d80eada878edd6c2c13e0f8954c12fb83f022930a4012"
+    },
+    "project\\tests\\test_ring_uart_protocol.c": {
+      "before": "182badb7ff4a38c188f3ce1e425700bd79aa2a84aa8dfd8ea05f5314abd6505e",
+      "after": "ad0eacb852c45fde5cd32cba9c6b2eaf345ca80ddfba2e79724f3afd3e22ca2a"
+    },
+    "readme.md": {
+      "before": "6a6ebb4f5165aef82ea2dbda142f7d3ea7e27b62ed476ebdf9e37b78d2f20eaf",
+      "after": "6229326299aed66d77619ef2e90f45dee636f815edceb4d41faf4e5e197957c4"
+    },
+    "uart1_ring_diagnostics.md": {
+      "before": "3add3fa00ba3cf0af43be43ee8befdd706bce0fde4e6456d5feb4fb2ffeddfc4",
+      "after": "6d364ddf624c29250b49da79caa2c7bf32fbdbc79f73a2f1e67a44e4da42464c"
+    }
+  },
+  "backup": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\_backup_before_entry100_fix_20261114",
+  "serial": {
+    "port": "COM9",
+    "baud": 115200,
+    "pair": "#PAIR,22,22,1",
+    "serialWrites": 0
+  },
+  "hardware_validation": "Pending. Latest v21 sessions had APPROACH timeouts and no ENTER/K; raising force budget alone cannot fix untriggered entry.",
+  "packaging": "Engineering HEX/OUT only; no extra packaging; no flashing"
+}

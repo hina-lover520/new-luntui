@@ -1,0 +1,95 @@
+{
+  "date": "2026-11-07",
+  "project": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui",
+  "backup": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\_backup_before_ring_isolation_20261107_1793983981192",
+  "ordinaryBaseline": "Current working ordinary tracking before this change; 140/125 RPM",
+  "protectedInputsUnchanged": 541,
+  "changedProductionFiles": [
+    {
+      "file": "project/code/ring.c",
+      "sha256": "8a144b2273a68882b356fa64fb0827b19a0fe111b52f33e76eb60edffc608df5"
+    },
+    {
+      "file": "project/code/ring.h",
+      "sha256": "0c928f41d9bb51ce8ec2e82119b80c6f3087256f408be62015549705621648ea"
+    },
+    {
+      "file": "project/code/ring_vision.c",
+      "sha256": "1a3303c12ea1574c82e63c054406e3c06a4c0065c473bf51343d299d2ba4cb04"
+    },
+    {
+      "file": "project/code/ring_vision.h",
+      "sha256": "a513d81f235bc2f59fdd6dcccb91f1d95fa475018fc8490061a5c60a8fad07f5"
+    },
+    {
+      "file": "project/code/ring_runtime.c",
+      "sha256": "f00c42a62e4dcfe805a66c9c077733518be854570ae12b14a69e96bfd58d0fa7"
+    },
+    {
+      "file": "project/code/ring_link.h",
+      "sha256": "fb1b40326e35e5f93cae73f0dbb3fc48302a5653ed94eac150fb29bd008dbf7b"
+    },
+    {
+      "file": "project/code/ring_control.h",
+      "sha256": "ecaa346fd66e03f7b44477e8b24c14397af504ef3e89d5ae2467872a58413397"
+    }
+  ],
+  "hostTests": {
+    "status": "PASS",
+    "suites": 8,
+    "routeFrameChecks": 1257,
+    "extraIsolationGeometryFrames": 199,
+    "cases": [
+      "ordinary passthrough",
+      "cross arbitration",
+      "side entry progression",
+      "signed lap",
+      "false handover cancellation",
+      "committed path loss",
+      "exit recovery",
+      "two nonblocking beeps",
+      "ring boost isolation",
+      "disabled ring passthrough"
+    ]
+  },
+  "builds": [
+    {
+      "core": 0,
+      "errors": 0,
+      "warnings": 3
+    },
+    {
+      "core": 1,
+      "errors": 0,
+      "warnings": 9
+    }
+  ],
+  "firmware": [
+    {
+      "name": "cyt4bb7_cm_7_0.hex",
+      "size": 134863,
+      "sha256": "865eb9b0e316a3f4d1b6370fcd2bdf4a34f721acd8d299f14ba883cbcb0974ec"
+    },
+    {
+      "name": "cyt4bb7_cm_7_0.out",
+      "size": 1724632,
+      "sha256": "4f964caca63c9ee17b37989cf4e6cea46fd8f0a7918e3f20d43a918ba9da25c8"
+    },
+    {
+      "name": "cyt4bb7_cm_7_1.hex",
+      "size": 114560,
+      "sha256": "a42381e616d573a6f4eef563b4c0609d2f387d478434886bde1d684e045d0f89"
+    },
+    {
+      "name": "cyt4bb7_cm_7_1.out",
+      "size": 1853424,
+      "sha256": "0050c4338ce48492b7fe039e548b4b3af613cb7d03173e1aad22b1a39cd2110a"
+    }
+  ],
+  "realVehicleValidated": false,
+  "limitations": [
+    "No real onboard full-lap image replay or MCU frame-interval measurement",
+    "Original cross conflict veto is conservative and can miss a real ring",
+    "Ring-only geometry, steering magnitude and yaw polarity need physical validation"
+  ]
+}

@@ -1,0 +1,1193 @@
+--- before/project\code\ring.h
++++ after/project\code\ring.h
+@@ -103,6 +103,7 @@
+ #define RING_FORWARD_OVERSPEED_RPM 12.0f
+ #define RING_FORWARD_TRIM_MAX_RPM  25.0f
+ #define RING_ENTRY_READY_RPM       (RING_APPROACH_RPM + 15.0f)
++#define RING_ENTRY_MIN_FORWARD_RPM (RING_CIRCLE_RPM * 0.5f)
+ #define RING_ENTRY_HANDOVER_MS     300u
+ #define RING_TANGENT_CONFIRM      3
+ #define RING_TANGENT_FAR_MIN_ROW  74
+--- before/project\code\ring_link.h
++++ after/project\code\ring_link.h
+@@ -7,7 +7,7 @@
+  * array at 0x28001000. Original communication remains untouched. */
+ #define RING_LINK_WORDS 8
+ #define RING_LINK_MAGIC 0x524E4704
+-#define RING_PAIR_VERSION 30u
++#define RING_PAIR_VERSION 31u
+ /* v30 bit27: confirmed scheduled entry in timed APPROACH; otherwise the
+  * existing non-timed ENTER force request. Never optional telemetry. */
+ #define RING_COMMAND_FORCE_ENTRY (1u << 27)
+--- before/project\code\ring_maneuver.h
++++ after/project\code\ring_maneuver.h
+@@ -16,6 +16,15 @@
+ 
+ static inline float ring_maneuver_clamp(float v,float lo,float hi)
+ {return v<lo?lo:(v>hi?hi:v);}
++
++/* Ring-only allowance: full existing90RPM turn at90RPM forward, reduced
++ * proportionally as actual forward motion falls, zero at standstill/reverse.
++ * This does not write wheel targets or change the original balance PID. */
++static inline float ring_maneuver_forward_limit(float measured,int valid)
++{
++    if(!valid || !isfinite(measured) || measured<=0.f)return 0.f;
++    return RING_FORCE_MAX_RPM*ring_maneuver_clamp(measured/RING_CIRCLE_RPM,0.f,1.f);
++}
+ 
+ static inline void ring_maneuver_begin(ring_maneuver_t *s,uint32_t now,int side,
+     float yaw,float revs)
+--- before/project\code\ring_runtime.c
++++ after/project\code\ring_runtime.c
+@@ -5,6 +5,7 @@
+ #include "ring_maneuver.h"
+ #include "ring_entry_speed.h"
+ #include "ring_forward_profile.h"
++#include "ring_yaw_bias.h"
+ #include "ring.h"
+ #include <string.h>
+ 
+@@ -27,9 +28,8 @@
+ static volatile uint32_t beep_requested;
+ static uint32_t beep_started, beep_deadline, next_beep_ms;
+ static uint8_t beep_on;
+-static float gyro_scale, gyro_bias;
+-static int32_t bias_sum;
+-static unsigned bias_samples;
++static float gyro_scale;
++static ring_yaw_bias_t yaw_bias;
+ static uint32_t epoch, feedback_sequence, seen_sequence;
+ static uint32_t detected_seen, exited_seen;
+ static int ring_fault;
+@@ -63,7 +63,7 @@
+     }
+     runtime_ms = last_command_ms = pair_last_ms = 0;
+     pair_packet_valid=0;
+-    heading_deg = gyro_bias = 0.0f;
++    heading_deg = 0.0f;
+     heading_rate=0;force_requested=force_side=0;
+     memset(&force_control,0,sizeof(force_control));memset(&maneuver,0,sizeof(maneuver));
+     maneuver_event_seen=0;
+@@ -73,11 +73,10 @@
+     preceding_target=0;preceding_target_ms=motion_sample_ms=0;
+     preceding_target_valid=motion_sample_valid=0;
+     gyro_scale = gyro_dps_per_count;
++    ring_yaw_bias_init(&yaw_bias,gyro_scale);
+     speed_cap = -1;
+     runtime_ready = 0;
+     operator_flags = RING_OPERATOR_VALID;
+-    bias_sum = 0;
+-    bias_samples = 0;
+     feedback_sequence = seen_sequence = 0;
+     detected_seen = exited_seen = 0;
+     beep_requested = beep_started = beep_deadline = next_beep_ms = 0;
+@@ -130,16 +129,13 @@
+     uint32_t now = ++runtime_ms;
+     if (!RING_ENABLE) return -1;
+     runtime_ready = standing;
+-    /* Use the existing stationary startup wait. This does not modify any
+-     * gyro_offset_* or quaternion/balance state and never delays a servo. */
+-    if (!standing && now >= 1000u && now < 2000u) {
+-        bias_sum += gyro_z_raw;
+-        ++bias_samples;
+-    }
+-    if (now == 2000u && bias_samples)
+-        gyro_bias = (float)bias_sum / bias_samples;
+-    if (standing && now >= 2000u && bias_samples) {
+-        float rate=((float)gyro_z_raw-gyro_bias)*gyro_scale;
++    /* Ring yaw has its own stable standby calibration. RUN freezes a
++     * valid zero before servos move; quaternion/balance offsets stay intact.
++     * No fixed one-second boot sample is averaged for the whole session. */
++    ring_yaw_bias_update(&yaw_bias,gyro_z_raw,now,standing,
++        (operator_flags&RING_OPERATOR_RUN)!=0u);
++    if (standing && now >= 2000u && yaw_bias.ready) {
++        float rate=ring_yaw_bias_rate(&yaw_bias,gyro_z_raw);
+         heading_rate+=.02f*(rate-heading_rate);
+         heading_deg += rate * 0.001f;
+     } else heading_rate=0;
+@@ -488,13 +484,13 @@
+             if(detected<maneuver_event_seen)maneuver_event_seen=detected;
+         } else if (valid && ((owned && detected && (vision_state == 3 || timed)) ||
+                             (ring_active && (owned || phase == RING_FAULT))) && !abort_pending &&
+-                            (!timed || (runtime_ready && bias_samples && (operator_flags&RING_OPERATOR_RUN)))) {
++                            (!timed || (runtime_ready && yaw_bias.ready && (operator_flags&RING_OPERATOR_RUN)))) {
+             ring_active = 1;
+             speed_cap = cap;
+             ring_fault = fault;
+             requested_boost = owned ? boost : 0;
+             if(timed && !was_active && phase==RING_APPROACH && detected>maneuver_event_seen &&
+-               runtime_ready && bias_samples && (operator_flags&RING_OPERATOR_RUN) &&
++               runtime_ready && yaw_bias.ready && (operator_flags&RING_OPERATOR_RUN) &&
+                !ring_command_diag_cross_veto(packet.word[RC_FAULT])) {
+                 ring_maneuver_begin(&maneuver,now,-route,heading_deg,wheel_revs);
+                 ring_entry_speed_begin(&entry_speed,now,
+@@ -570,11 +566,11 @@
+         /* Optional D/E/G/H/J packets never arm or renew this control.
+          * Only the matching fresh command can request the locked F turn. */
+         if(maneuver.stage) {
+-            int eligible=fresh && runtime_ready && original_forward>0 && bias_samples &&
++            int eligible=fresh && runtime_ready && original_forward>0 && yaw_bias.ready &&
+                 (operator_flags&RING_OPERATOR_RUN);
+             if(maneuver.stage==1u) {
+                 int motion_ok=measured_forward_valid && motion_sample_valid &&
+-                    now-motion_sample_ms<=150u && measured_forward>=0.f &&
++                    now-motion_sample_ms<=150u && measured_forward>=RING_ENTRY_MIN_FORWARD_RPM &&
+                     measured_forward<=RING_ENTRY_READY_RPM && entry_speed.valid &&
+                     entry_speed.output<=RING_APPROACH_RPM+5.f;
+                 /* A confirmed scheduled entry survives temporarily cropped
+@@ -586,10 +582,22 @@
+             *turn_out=ring_maneuver_apply(&maneuver,*turn_out,now,heading_deg,wheel_revs,heading_rate,
+                 eligible,diagnostics.path_valid && !diagnostics.stop &&
+                 diagnostics.phase>=RING_ENTER && diagnostics.phase<=RING_RECOVER);
++            if(maneuver.stage==2u) {
++                /* Preserve the full existing turn at normal ring speed.
++                 * A wheel-speed collapse must not leave full differential
++                 * spinning the car. Forward target and balance PID remain
++                 * responsible for recovering positive forward motion. */
++                float limit=ring_maneuver_forward_limit(measured_forward,
++                    measured_forward_valid && motion_sample_valid && now-motion_sample_ms<=150u);
++                diagnostics.entry_turn_cap10=(int16_t)(limit*10.f);
++                *turn_out=ring_maneuver_clamp(*turn_out,-limit,limit);
++                maneuver.output=*turn_out;
++                if(limit<RING_FORCE_MAX_RPM) maneuver.reason=8u;
++            }
+         } else *turn_out=ring_force_apply(&force_control,*turn_out,now,heading_deg,wheel_revs,
+             heading_rate,force_side,force_requested,
+             fresh && !ring_control_stop(speed_cap,3,ring_fault,fresh) &&
+-            vision_state==3 && original_forward>0 && bias_samples &&
++            vision_state==3 && original_forward>0 && yaw_bias.ready &&
+             (operator_flags&RING_OPERATOR_RUN),diagnostics.path_valid &&
+             (diagnostics.phase==RING_ENTER || diagnostics.phase==RING_CIRCLE));
+         /* Approach already decelerates. Entry/circle caps continue from
+@@ -622,6 +630,13 @@
+     diagnostics.speed_goal10=(RING_TRACK_MODE && RING_TIMED_ENTRY)?
+         (int16_t)(forward_profile.goal*10.f):(entry_speed.valid?(int16_t)(entry_speed.goal*10.f):0);
+     diagnostics.motion_age_ms=motion_sample_valid?now-motion_sample_ms:UINT32_MAX;
++    diagnostics.yaw_raw=yaw_bias.raw;
++    diagnostics.yaw_bias_raw=(int16_t)lroundf(yaw_bias.bias);
++    diagnostics.yaw_calibrated=(uint8_t)yaw_bias.ready;
++    diagnostics.yaw_calibration_ms=yaw_bias.updated_ms;
++    diagnostics.yaw_calibration_count=yaw_bias.accepted;
++    diagnostics.yaw_window_state=(uint8_t)yaw_bias.window_state;
++    if(maneuver.stage!=2u)diagnostics.entry_turn_cap10=0;
+     diagnostics.maneuver_stage=(uint8_t)maneuver.stage;
+     diagnostics.maneuver_turn10=(int16_t)fmaxf(-32768.f,fminf(32767.f,maneuver.progress*10.f));
+     diagnostics.maneuver_remaining10=(int16_t)fmaxf(-32768.f,fminf(32767.f,
+@@ -664,7 +679,7 @@
+     packet.word[RM_MS] = (int32_t)now;
+     packet.word[RM_YAW_MDEG] = (int32_t)(heading_deg * 1000.0f);
+     packet.word[RM_WHEEL_MREV] = (int32_t)(wheel_revs * 1000.0f);
+-    packet.word[RM_READY] = ring_motion_status(runtime_ready | ((now >= 2000u && bias_samples) ? 2u : 0u),
++    packet.word[RM_READY] = ring_motion_status(runtime_ready | ((now >= 2000u && yaw_bias.ready) ? 2u : 0u),
+         maneuver.stage,diagnostics.maneuver_turn10);
+     packet.word[RM_RESERVED] = ring_motion_operator_version(operator_flags|
+         (abort_pending?RING_OPERATOR_ABORT_RING:0u),RING_PAIR_VERSION);
+--- before/project\code\ring_runtime.h
++++ after/project\code\ring_runtime.h
+@@ -55,6 +55,9 @@
+     int16_t held_target10, speed_goal10, measured_forward10, pitch100, speed_tilt100;
+     int32_t left_pwm, right_pwm;
+     uint32_t motion_age_ms;
++    int16_t yaw_raw,yaw_bias_raw,entry_turn_cap10;
++    uint8_t yaw_calibrated,yaw_window_state;
++    uint32_t yaw_calibration_ms,yaw_calibration_count;
+ } ring_runtime_diagnostics_t;
+ 
+ void ring_runtime_init(float gyro_dps_per_count);
+--- before/project\code\ring_uart_diag.h
++++ after/project\code\ring_uart_diag.h
+@@ -52,6 +52,8 @@
+ static int ring_diag_have_pair;
+ static uint32_t ring_diag_force_seq,ring_diag_force_last_ms,ring_diag_force_key;
+ static int ring_diag_have_force;
++static uint32_t ring_diag_bias_seq,ring_diag_bias_last_ms;
++static int ring_diag_have_bias;
+ static uint32_t ring_diag_image_sequence,ring_diag_image_epoch,ring_diag_ack_sequence;
+ 
+ static unsigned ring_diag_service(void)
+@@ -140,10 +142,11 @@
+ static void ring_uart_diag_poll(int steer_error, int speed_left, int speed_right)
+ {
+     static const char *const headers[] = {
+-        "#RING,30,UART1,115200,8N1,TX=P04_1,RX=P04_0,CONTROL=4,PAIR=30,IMAGE=IPM,TRACK_MODE="
++        "#RING,31,UART1,115200,8N1,TX=P04_1,RX=P04_0,CONTROL=4,PAIR=31,IMAGE=IPM,TRACK_MODE="
+         RING_DIAG_STRINGIFY(RING_TRACK_MODE) ",YAW_SIGN="
+         RING_DIAG_STRINGIFY(RING_YAW_SIGN) "\r\n",
+         "#seq,ms,dt,loop,ph,dir,raw,out,cand,xv,cm,pv,stop,f,act,e,sel,near,deg,cap,br,ba,v0,v1,u0,u1,L,R,age,w,det,exit,drop\r\n",
++        "#B,seq,ms,raw,bias_raw,rate10,cal,cal_age,cal_n,state,turn_cap10,drop;RAW_COUNTS;RATE_DPSx10;CAP_RPMx10\r\n"
+         "#D,seq,ms,epoch,cmd,frame,vdt,cand_det,cand_ok,score,rej,cc,side,src,nx,lx,branch,cls,age,drop\r\n",
+         "#E,seq,ms,epoch,cmd,frame,entry_flags,hold_reject,decision,lost_frames,path_age_ms,hold_turn10,entry_turn10,age,drop\r\n",
+         "#G,seq,ms,epoch,cmd,frame,mode,rows,assoc,support,strong_age_ms,gx,gy,age,drop\r\n",
+@@ -421,6 +424,23 @@
+             }
+         }
+     }
++    /* One compact yaw-health record per second, including standby. K
++     * keeps its entry priority; no TX wait or extra ISR is introduced. */
++    if((!ring_diag_have_bias || d->now_ms-ring_diag_bias_last_ms>=1000u) &&
++       !force_sent && ring_diag_count<RING_DIAG_QUEUE_LINES-2u) {
++        length=snprintf(line,sizeof(line),
++            "B,%lu,%lu,%d,%d,%d,%u,%lu,%lu,%u,%d,%lu\r\n",
++            (unsigned long)ring_diag_bias_seq,(unsigned long)d->now_ms,
++            (int)d->yaw_raw,(int)d->yaw_bias_raw,(int)d->force_rate10,
++            (unsigned)d->yaw_calibrated,
++            (unsigned long)(d->yaw_calibrated?d->now_ms-d->yaw_calibration_ms:UINT32_MAX),
++            (unsigned long)d->yaw_calibration_count,(unsigned)d->yaw_window_state,
++            (int)d->entry_turn_cap10,(unsigned long)ring_diag_dropped);
++        if(length>0 && (unsigned)length<sizeof(line) && ring_diag_enqueue(line,(unsigned)length)) {
++            ring_diag_bias_last_ms=d->now_ms;ring_diag_have_bias=1;
++            ++ring_diag_bias_seq;
++        }
++    }
+     ring_diag_service();
+     ring_diag_image_poll(d);
+ }
+--- before/project\code\ring_yaw_bias.h
++++ after/project\code\ring_yaw_bias.h
+@@ -0,0 +1,154 @@
++#ifndef CODE_RING_YAW_BIAS_H_
++#define CODE_RING_YAW_BIAS_H_
++
++#include <stdint.h>
++#include <math.h>
++#include <string.h>
++
++/* Ring-only raw Z bias. No IMU, balance state, heading, motor or wait is owned
++ * here. Call update once per 1 ms tick; integrate rate only while standing.
++ * Range/mean checks reject motion with varying rate. Means above10dps are
++ * rejected as implausible bias. Slower constant rotation cannot be
++ * distinguished from an offset using gyro Z alone, so idle windows continue
++ * to replace an earlier estimate until RUN freezes it. */
++#define RING_YAW_BIAS_STARTUP_MS       1000u
++#define RING_YAW_BIAS_WINDOW_MS         250u
++#define RING_YAW_BIAS_MIN_SAMPLES       125u
++#define RING_YAW_BIAS_MAX_GAP_MS          5u
++#define RING_YAW_BIAS_RANGE_DPS         3.0f
++#define RING_YAW_BIAS_MEAN_TOL_DPS      1.0f
++#ifndef RING_YAW_BIAS_MAX_ABS_DPS
++#define RING_YAW_BIAS_MAX_ABS_DPS      10.0f
++#endif
++
++enum {
++    RING_YAW_BIAS_STARTUP = 0,
++    RING_YAW_BIAS_COLLECTING = 1,
++    RING_YAW_BIAS_FIRST_STABLE = 2,
++    RING_YAW_BIAS_ACCEPTED = 3,
++    RING_YAW_BIAS_UNSTABLE = 4,
++    RING_YAW_BIAS_RUN_FROZEN = 5,
++    RING_YAW_BIAS_STANDING_FROZEN = 6,
++    RING_YAW_BIAS_INVALID_SCALE = 7
++};
++
++typedef struct {
++    uint32_t boot_ms, window_started_ms, last_sample_ms;
++    uint32_t accepted, updated_ms;
++    float scale, bias, raw_dps;
++    float sum_dps, minimum_dps, maximum_dps, previous_mean_dps;
++    uint16_t samples;
++    int16_t raw;
++    unsigned ready, warmup_done, window_active, previous_stable;
++    unsigned last_sample_valid, window_state;
++} ring_yaw_bias_t;
++
++static inline void ring_yaw_bias_init_at(ring_yaw_bias_t *s, float scale, uint32_t now)
++{
++    memset(s, 0, sizeof(*s));
++    s->scale = scale;
++    s->boot_ms = now;
++    s->window_state = RING_YAW_BIAS_STARTUP;
++}
++
++static inline void ring_yaw_bias_init(ring_yaw_bias_t *s, float scale)
++{
++    ring_yaw_bias_init_at(s, scale, 0);
++}
++
++static inline void ring_yaw_bias_clear_window(ring_yaw_bias_t *s)
++{
++    s->window_active = s->previous_stable = s->last_sample_valid = 0;
++    s->samples = 0;
++    s->sum_dps = 0.0f;
++}
++
++static inline void ring_yaw_bias_update(ring_yaw_bias_t *s,
++    int16_t raw, uint32_t now, int standing, int run)
++{
++    float mean, dps_per_count = s->scale;
++    int stable;
++    s->raw = raw;
++    s->raw_dps = (float)raw * dps_per_count;
++    if (!isfinite(dps_per_count) || dps_per_count <= 0.0f ||
++        !isfinite(s->raw_dps)) {
++        ring_yaw_bias_clear_window(s);
++        s->window_state = RING_YAW_BIAS_INVALID_SCALE;
++        return;
++    }
++    /* Standing always freezes, even if no usable estimate exists. RUN also
++     * freezes a ready estimate before servos start moving. If RUN was already
++     * set at boot, an unready estimate may finish initial calibration; motion
++     * must still pass both complete windows and cannot re-calibrate afterward. */
++    if (standing || (run && s->ready)) {
++        ring_yaw_bias_clear_window(s);
++        s->window_state = standing ? RING_YAW_BIAS_STANDING_FROZEN :
++            RING_YAW_BIAS_RUN_FROZEN;
++        return;
++    }
++    if (!s->warmup_done) {
++        if (now - s->boot_ms < RING_YAW_BIAS_STARTUP_MS) {
++            ring_yaw_bias_clear_window(s);
++            s->window_state = RING_YAW_BIAS_STARTUP;
++            return;
++        }
++        s->warmup_done = 1;
++    }
++    if (s->last_sample_valid) {
++        uint32_t gap = now - s->last_sample_ms;
++        if (!gap) return; /* a repeated poll cannot manufacture samples */
++        if (gap > RING_YAW_BIAS_MAX_GAP_MS)
++            ring_yaw_bias_clear_window(s);
++    }
++    if (!s->window_active) {
++        s->window_active = 1;
++        s->window_started_ms = now;
++        s->samples = 0;
++        s->sum_dps = 0.0f;
++        s->window_state = RING_YAW_BIAS_COLLECTING;
++    }
++    s->last_sample_ms = now;
++    s->last_sample_valid = 1;
++    if (!s->samples) s->minimum_dps = s->maximum_dps = s->raw_dps;
++    if (s->raw_dps < s->minimum_dps) s->minimum_dps = s->raw_dps;
++    if (s->raw_dps > s->maximum_dps) s->maximum_dps = s->raw_dps;
++    s->sum_dps += s->raw_dps;
++    ++s->samples;
++    if (now - s->window_started_ms < RING_YAW_BIAS_WINDOW_MS) return;
++
++    mean = s->sum_dps / (float)s->samples;
++    stable = s->samples >= RING_YAW_BIAS_MIN_SAMPLES &&
++        s->maximum_dps - s->minimum_dps <= RING_YAW_BIAS_RANGE_DPS &&
++        fabsf(mean) <= RING_YAW_BIAS_MAX_ABS_DPS;
++    if (stable) {
++        if (s->previous_stable &&
++            fabsf(mean - s->previous_mean_dps) <= RING_YAW_BIAS_MEAN_TOL_DPS) {
++            s->bias = (mean + s->previous_mean_dps) * 0.5f / dps_per_count;
++            s->ready = 1;
++            ++s->accepted;
++            s->updated_ms = now;
++            s->window_state = RING_YAW_BIAS_ACCEPTED;
++        } else s->window_state = RING_YAW_BIAS_FIRST_STABLE;
++        s->previous_mean_dps = mean;
++        s->previous_stable = 1;
++    } else {
++        s->previous_stable = 0;
++        s->window_state = RING_YAW_BIAS_UNSTABLE;
++    }
++    /* Do not reuse a boundary sample. The next window starts at this time and
++     * collects subsequent ticks, making two complete windows ready at1500ms. */
++    s->window_started_ms = now;
++    s->samples = 0;
++    s->sum_dps = 0.0f;
++}
++
++static inline float ring_yaw_bias_rate(const ring_yaw_bias_t *s,
++    int16_t raw)
++{
++    float dps_per_count = s->scale;
++    if (!s->ready || !isfinite(dps_per_count) || dps_per_count <= 0.0f)
++        return 0.0f;
++    return ((float)raw - s->bias) * dps_per_count;
++}
++
++#endif
+--- before/project\tests\run_ring_tests.ps1
++++ after/project\tests\run_ring_tests.ps1
+@@ -55,6 +55,9 @@
+ $ringJobs += @{ Name='forward-profile'; Test='test_ring_forward_profile.c'; Sources=@(); Defines=@() }
+ $ringJobs += @{ Name='v29-real-snapshots'; Test='test_ring_v29_regression.c'; Sources=@(); Defines=@() }
+ $ringJobs += @{ Name='v30-entry-handover'; Test='test_ring_v30_regression.c'; Sources=@(); Defines=@() }
++$ringJobs += @{ Name='yaw-bias-stability'; Test='test_ring_yaw_bias.c'; Sources=@(); Defines=@() }
++$ringJobs += @{ Name='v31-forward-entry'; Test='test_ring_v31_motion.c'; Sources=@('ring_runtime.c','ring_link.c'); Defines=@() }
++$ringJobs += @{ Name='v31-exit-direction'; Test='test_ring_v31_exit.c'; Sources=@('ring_runtime.c','ring_link.c'); Defines=@() }
+ New-Item -ItemType Directory -Path $ringTemporary | Out-Null
+ try {
+     foreach ($ringJob in $ringJobs) {
+--- before/project\tests\test_ring_diag_isolation.c
++++ after/project\tests\test_ring_diag_isolation.c
+@@ -189,7 +189,7 @@
+     }
+     for(i=0;i<200u;++i){uart_port.used=0;ring_uart_diag_poll(0,100,100);}
+     uart_capture[uart_capture_count]=0;
+-    CHECK(strstr(uart_capture,"#RING,30,UART1,115200")!=NULL);
++    CHECK(strstr(uart_capture,"#RING,31,UART1,115200")!=NULL);
+     r=strstr(uart_capture,"\r\nR,");CHECK(r!=NULL);r+=2;end=strstr(r,"\r\n");CHECK(end!=NULL);
+     commas=0;for(p=r;p<end;++p)if(*p==',')++commas;CHECK(commas==33u);
+     r=strstr(uart_capture,"\r\nD,");CHECK(r!=NULL);r+=2;end=strstr(r,"\r\n");CHECK(end!=NULL);
+--- before/project\tests\test_ring_entry_speed.c
++++ after/project\tests\test_ring_entry_speed.c
+@@ -1,67 +1,67 @@
+-/* Production command-mailbox regression; optional telemetry cannot arm. */
+-#include "ring_entry_speed.h"
+-#include "ring_runtime.h"
+-#include "ring_link.h"
+-#include "ring_uart_diag.h"
+-#include <stdlib.h>
+-#include <math.h>
+-stc_SCB_t uart_port;char uart_capture[32768];unsigned uart_capture_count;
+-#define CHECK(c) do{if(!(c)){fprintf(stderr,"FAIL entry speed:%d %s f%.3f turn%.3f stage%u\n",__LINE__,#c,forward,turn,ring_runtime_diagnostics()->maneuver_stage);exit(1);}}while(0)
+-static uint32_t seq,epoch;static float forward,turn,measured=150;static int permit=0,observe=1,path=1;
+-static void ticks(int raw,unsigned n,int ready){while(n--)(void)ring_runtime_tick((int16_t)raw,(uint8_t)ready);}
+-static void apply(float normal,int state){forward=normal;turn=17;
+- if(observe)ring_runtime_observe_motion(measured,2.25f,-3.5f,-1234,2345);
+- ring_runtime_apply(&forward,&turn,0,state);}
+-static void boot(void){
+- memset(ring_command_mailbox,0,32);memset(ring_motion_mailbox,0,32);seq=0;permit=0;observe=1;path=1;measured=150;
+- ring_runtime_init(.1f);ring_runtime_set_operator(1,0);ticks(0,2000,0);ticks(0,1,1);apply(150,1);
+- epoch=ring_runtime_diagnostics()->command_epoch;}
+-static void command(int side,int phase,int cap,int timed,float normal,int state){
+- ring_packet_t p={{0}};p.word[RL_MAGIC]=RING_LINK_MAGIC;p.word[RL_EPOCH]=(int32_t)epoch;
+- p.word[RC_CAP]=ring_command_cap_turn(cap,0);p.word[RC_PHASE]=ring_command_versioned_phase(phase,0,RING_PAIR_VERSION);p.word[RC_DETECTED]=1;
+- p.word[RC_FAULT]=ring_command_diagnostics(0,1,0,0,path,0,1,0,80,-side);
+- if(phase==RING_COOLDOWN)p.word[RC_FAULT]=(int32_t)((uint32_t)p.word[RC_FAULT]|(1u<<RING_COMMAND_RELEASE_SHIFT));
+- if(timed)p.word[RC_FAULT]=(int32_t)((uint32_t)p.word[RC_FAULT]|RING_COMMAND_TIMED_ENTRY);
+- if(permit && phase==RING_APPROACH)p.word[RC_FAULT]=(int32_t)((uint32_t)p.word[RC_FAULT]|RING_COMMAND_FORCE_ENTRY);
+- ring_link_write(ring_command_mailbox,&p,&seq);apply(normal,state);}
+-static void profile(int side){
+- unsigned i;float previous;boot();command(side,RING_APPROACH,100,1,150,3);
+- CHECK(forward==150 && turn==17);
+- for(i=0;i<40;++i){previous=forward;measured=previous;ticks(0,50,1);command(side,RING_APPROACH,100,1,150,3);
+-  CHECK(forward<=previous && previous-forward<=4.001f && forward>0);
+-  CHECK(ring_runtime_diagnostics()->maneuver_stage==1 && !ring_runtime_diagnostics()->force_active);}
+- CHECK(forward==100);
+- permit=1;measured=175;ticks(0,50,1);command(side,RING_APPROACH,100,1,150,3);
+- CHECK(ring_runtime_diagnostics()->maneuver_stage==1 && ring_runtime_diagnostics()->force_reason==2);
+- observe=0;ticks(0,160,1);command(side,RING_APPROACH,100,1,150,3);CHECK(ring_runtime_diagnostics()->maneuver_stage==1);
+- observe=1;measured=100;path=0;ticks(0,50,1);command(side,RING_APPROACH,100,1,150,3);
+- CHECK(ring_runtime_diagnostics()->maneuver_stage==2 && side*turn>0);path=1;
+- for(i=0;i<16;++i){previous=forward;measured=forward;ticks(side*1000,50,1);command(side,RING_ENTER,90,1,150,3);
+-  CHECK(forward<=100 && forward>0 && fabsf(forward-previous)<=4.001f);}
+- CHECK(ring_runtime_diagnostics()->maneuver_stage==3);
+- for(i=0;i<12;++i){measured=forward;ticks(0,50,1);command(side,RING_CIRCLE,90,0,150,3);}
+- CHECK(forward==90 && turn==17);
+- previous=forward;ticks(0,46,1);command(side,RING_COOLDOWN,-1,0,160,1);
+- CHECK(!ring_runtime_diagnostics()->active && turn==17 && forward-previous<=1.611f && forward>=90);
+- previous=forward;ticks(0,46,1);apply(160,0);CHECK(forward<=previous && turn==17);
+- CHECK(!ring_runtime_diagnostics()->held_target10);
+- apply(0,1);CHECK(forward==0 && turn==17);
+- ring_runtime_set_operator(0,0);apply(150,1);CHECK(forward==150 && turn==17 && !ring_runtime_diagnostics()->force_active);
+-}
+-static void timeout_case(void){
+- float fallback,output;boot();command(1,RING_APPROACH,100,1,150,3);ticks(0,100,1);command(1,RING_APPROACH,100,1,150,3);
+- fallback=forward;output=0;ticks(0,301,1);ring_runtime_poll_timeout(&forward,&output);
+- CHECK(forward==fallback && output==17);
+- ticks(0,1,1);measured=fallback;apply(160,1);CHECK(forward-fallback<=3.501f && turn==17);
+-}
+-static void wire(void){
+- unsigned i;char *p,*end;unsigned commas=0;boot();command(1,RING_APPROACH,100,1,150,3);
+- for(i=0;i<180;++i){uart_port.used=0;ring_uart_diag_poll(0,0,0);}
+- uart_capture[uart_capture_count]=0;CHECK(strstr(uart_capture,"#RING,30,") && strstr(uart_capture,"meas10,pitch100,tilt100,pwmL,pwmR,m_age"));
+- p=strstr(uart_capture,"\r\nK,");CHECK(p);p+=2;end=strstr(p,"\r\n");CHECK(end);
+- while(p<end)if(*p++==',')++commas;
+- CHECK(commas==29);
+-}
+-int main(void){profile(-1);profile(1);timeout_case();wire();
+- puts("PASS: both-side visual approach, immediate deceleration, portal/speed/observation gates, bounded75 handover, cancellation/lost-line no speed surge, zero/stop and ISR release, K29 wire");return 0;}
+-
++/* Production command-mailbox regression; optional telemetry cannot arm. */
++#include "ring_entry_speed.h"
++#include "ring_runtime.h"
++#include "ring_link.h"
++#include "ring_uart_diag.h"
++#include <stdlib.h>
++#include <math.h>
++stc_SCB_t uart_port;char uart_capture[32768];unsigned uart_capture_count;
++#define CHECK(c) do{if(!(c)){fprintf(stderr,"FAIL entry speed:%d %s f%.3f turn%.3f stage%u\n",__LINE__,#c,forward,turn,ring_runtime_diagnostics()->maneuver_stage);exit(1);}}while(0)
++static uint32_t seq,epoch;static float forward,turn,measured=150;static int permit=0,observe=1,path=1;
++static void ticks(int raw,unsigned n,int ready){while(n--)(void)ring_runtime_tick((int16_t)raw,(uint8_t)ready);}
++static void apply(float normal,int state){forward=normal;turn=17;
++ if(observe)ring_runtime_observe_motion(measured,2.25f,-3.5f,-1234,2345);
++ ring_runtime_apply(&forward,&turn,0,state);}
++static void boot(void){
++ memset(ring_command_mailbox,0,32);memset(ring_motion_mailbox,0,32);seq=0;permit=0;observe=1;path=1;measured=150;
++ ring_runtime_init(.1f);ring_runtime_set_operator(1,0);ticks(0,2000,0);ticks(0,1,1);apply(150,1);
++ epoch=ring_runtime_diagnostics()->command_epoch;}
++static void command(int side,int phase,int cap,int timed,float normal,int state){
++ ring_packet_t p={{0}};p.word[RL_MAGIC]=RING_LINK_MAGIC;p.word[RL_EPOCH]=(int32_t)epoch;
++ p.word[RC_CAP]=ring_command_cap_turn(cap,0);p.word[RC_PHASE]=ring_command_versioned_phase(phase,0,RING_PAIR_VERSION);p.word[RC_DETECTED]=1;
++ p.word[RC_FAULT]=ring_command_diagnostics(0,1,0,0,path,0,1,0,80,-side);
++ if(phase==RING_COOLDOWN)p.word[RC_FAULT]=(int32_t)((uint32_t)p.word[RC_FAULT]|(1u<<RING_COMMAND_RELEASE_SHIFT));
++ if(timed)p.word[RC_FAULT]=(int32_t)((uint32_t)p.word[RC_FAULT]|RING_COMMAND_TIMED_ENTRY);
++ if(permit && phase==RING_APPROACH)p.word[RC_FAULT]=(int32_t)((uint32_t)p.word[RC_FAULT]|RING_COMMAND_FORCE_ENTRY);
++ ring_link_write(ring_command_mailbox,&p,&seq);apply(normal,state);}
++static void profile(int side){
++ unsigned i;float previous;boot();command(side,RING_APPROACH,100,1,150,3);
++ CHECK(forward==150 && turn==17);
++ for(i=0;i<40;++i){previous=forward;measured=previous;ticks(0,50,1);command(side,RING_APPROACH,100,1,150,3);
++  CHECK(forward<=previous && previous-forward<=4.001f && forward>0);
++  CHECK(ring_runtime_diagnostics()->maneuver_stage==1 && !ring_runtime_diagnostics()->force_active);}
++ CHECK(forward==100);
++ permit=1;measured=175;ticks(0,50,1);command(side,RING_APPROACH,100,1,150,3);
++ CHECK(ring_runtime_diagnostics()->maneuver_stage==1 && ring_runtime_diagnostics()->force_reason==2);
++ observe=0;ticks(0,160,1);command(side,RING_APPROACH,100,1,150,3);CHECK(ring_runtime_diagnostics()->maneuver_stage==1);
++ observe=1;measured=100;path=0;ticks(0,50,1);command(side,RING_APPROACH,100,1,150,3);
++ CHECK(ring_runtime_diagnostics()->maneuver_stage==2 && side*turn>0);path=1;
++ for(i=0;i<16;++i){previous=forward;measured=forward;ticks(side*1000,50,1);command(side,RING_ENTER,90,1,150,3);
++  CHECK(forward<=100 && forward>0 && fabsf(forward-previous)<=4.001f);}
++ CHECK(ring_runtime_diagnostics()->maneuver_stage==3);
++ for(i=0;i<12;++i){measured=forward;ticks(0,50,1);command(side,RING_CIRCLE,90,0,150,3);}
++ CHECK(forward==90 && turn==17);
++ previous=forward;ticks(0,46,1);command(side,RING_COOLDOWN,-1,0,160,1);
++ CHECK(!ring_runtime_diagnostics()->active && turn==17 && forward-previous<=1.611f && forward>=90);
++ previous=forward;ticks(0,46,1);apply(160,0);CHECK(forward<=previous && turn==17);
++ CHECK(!ring_runtime_diagnostics()->held_target10);
++ apply(0,1);CHECK(forward==0 && turn==17);
++ ring_runtime_set_operator(0,0);apply(150,1);CHECK(forward==150 && turn==17 && !ring_runtime_diagnostics()->force_active);
++}
++static void timeout_case(void){
++ float fallback,output;boot();command(1,RING_APPROACH,100,1,150,3);ticks(0,100,1);command(1,RING_APPROACH,100,1,150,3);
++ fallback=forward;output=0;ticks(0,301,1);ring_runtime_poll_timeout(&forward,&output);
++ CHECK(forward==fallback && output==17);
++ ticks(0,1,1);measured=fallback;apply(160,1);CHECK(forward-fallback<=3.501f && turn==17);
++}
++static void wire(void){
++ unsigned i;char *p,*end;unsigned commas=0;boot();command(1,RING_APPROACH,100,1,150,3);
++ for(i=0;i<180;++i){uart_port.used=0;ring_uart_diag_poll(0,0,0);}
++ uart_capture[uart_capture_count]=0;CHECK(strstr(uart_capture,"#RING,31,") && strstr(uart_capture,"meas10,pitch100,tilt100,pwmL,pwmR,m_age"));
++ p=strstr(uart_capture,"\r\nK,");CHECK(p);p+=2;end=strstr(p,"\r\n");CHECK(end);
++ while(p<end)if(*p++==',')++commas;
++ CHECK(commas==29);
++}
++int main(void){profile(-1);profile(1);timeout_case();wire();
++ puts("PASS: both-side visual approach, immediate deceleration, portal/speed/observation gates, bounded75 handover, cancellation/lost-line no speed surge, zero/stop and ISR release, K29 wire");return 0;}
++
+--- before/project\tests\test_ring_entry_uart_budget.c
++++ after/project\tests\test_ring_entry_uart_budget.c
+@@ -1,59 +1,60 @@
+-#include <stdlib.h>
+-#include <string.h>
+-#include "zf_driver_uart.h"
+-static unsigned fifo_capacity=128u;
+-static uint32_t fifo_size(volatile stc_SCB_t*p){(void)p;return fifo_capacity;}
+-static void fifo_write(volatile stc_SCB_t*p,uint8_t value)
+-{if(p->used<fifo_capacity && uart_capture_count<32767u){++p->used;uart_capture[uart_capture_count++]=(char)value;}}
+-#define Cy_SCB_GetFifoSize fifo_size
+-#define Cy_SCB_WriteTxFifo fifo_write
+-#include "ring_uart_diag.h"
+-stc_SCB_t uart_port;char uart_capture[32768];unsigned uart_capture_count;
+-static ring_runtime_diagnostics_t sample;
+-const ring_runtime_diagnostics_t*ring_runtime_diagnostics(void){return &sample;}
+-#define CHECK(c) do{if(!(c)){fprintf(stderr,"FAIL entry UART:%d %s queue%u drop%lu\n",__LINE__,#c,ring_diag_count,(unsigned long)ring_diag_dropped);exit(1);}}while(0)
+-static unsigned records(const char*prefix,unsigned columns)
+-{
+- const char*p=uart_capture,*end,*q;unsigned count=0;
+- while((p=strstr(p,prefix))!=NULL){unsigned commas=0;p+=2;end=strstr(p,"\r\n");if(!end)break;
+-  for(q=p;q<end;++q)if(*q==',')++commas;
+-  CHECK(commas==columns);++count;p=end;
+- }return count;
+-}
+-static void poll(unsigned n)
+-{
+- unsigned before=uart_capture_count;
+- sample.now_ms+=46;sample.control_dt_ms=46;sample.command_sequence+=2;
+- sample.frame_sequence=sample.entry_frame_sequence=sample.geometry_frame_sequence=sample.topology_frame=sample.mouth_frame=n;
+- sample.branch_ok=(uint8_t)(n&1u);sample.decision=(uint8_t)(1u+(n&1u));
+- uart_port.used=0;ring_uart_diag_poll(0,180,-180);
+- CHECK(uart_capture_count-before<=128u && ring_diag_count<=8u);
+-}
+-int main(void)
+-{
+- unsigned i,before;
+- sample.phase=RING_ENTER;sample.active=1;sample.maneuver_stage=2;sample.force_active=1;sample.force_side=-1;
+- sample.force_target10=-1000;sample.force_rate10=-980;sample.final_turn10=-652;sample.force_reason=1;
+- sample.original_target10=1500;sample.final_target10=1324;sample.held_target10=1500;sample.speed_goal10=900;
+- sample.measured_forward10=-365;sample.pitch100=225;sample.speed_tilt100=-350;sample.left_pwm=-1234;sample.right_pwm=2345;
+- sample.diagnostic_valid=sample.entry_diagnostic_valid=sample.geometry_valid=sample.topology_valid=sample.mouth_valid=1;
+- sample.command_epoch=sample.diagnostic_epoch=sample.entry_diagnostic_epoch=sample.geometry_epoch=sample.topology_epoch=sample.mouth_epoch=1;
+- sample.control_version=sample.vision_version=RING_PAIR_VERSION;sample.pair_ok=1;
+- sample.candidate_detected=sample.candidate_allowed=1;sample.classification=2;
+- sample.entry_flags=8191;sample.hold_reject=63;sample.inner_rows=sample.associated_rows=120;
+- sample.lap_origin_mdeg=-2147483647;sample.lap_mdeg=2147483647;
+- for(i=0;i<50;++i)poll(i);CHECK(ring_diag_dropped==0);
+- uart_capture_count=0;
+- for(i=0;i<200;++i)poll(50+i);
+- uart_capture[uart_capture_count]=0;
+- CHECK(ring_diag_dropped==0 && ring_diag_count<=3);
+- CHECK(records("\r\nK,",29)>=35 && records("\r\nJ,",22)>=25);
+- CHECK(records("\r\nE,",14)>=10 && records("\r\nH,",16)>=10);
+- printf("PASS: default K29 + R/D/E/G/H/J, %u bytes/9200ms, queue%u, drop%lu; K>=35, per-poll<=128 FIFO writes\n",uart_capture_count,ring_diag_count,(unsigned long)ring_diag_dropped);
+- /* A small/full FIFO loses telemetry instead of blocking or touching
+-  * runtime control. Bounded queue and service still hold under pressure. */
+- before=ring_diag_dropped;fifo_capacity=16;uart_capture_count=0;
+- for(i=0;i<100;++i)poll(250+i);
+- CHECK(ring_diag_dropped>before && ring_diag_count<=8);
+- puts("PASS: constrained FIFO backpressure remains bounded and observable");return 0;
+-}
++#include <stdlib.h>
++#include <string.h>
++#include "zf_driver_uart.h"
++static unsigned fifo_capacity=128u;
++static uint32_t fifo_size(volatile stc_SCB_t*p){(void)p;return fifo_capacity;}
++static void fifo_write(volatile stc_SCB_t*p,uint8_t value)
++{if(p->used<fifo_capacity && uart_capture_count<32767u){++p->used;uart_capture[uart_capture_count++]=(char)value;}}
++#define Cy_SCB_GetFifoSize fifo_size
++#define Cy_SCB_WriteTxFifo fifo_write
++#include "ring_uart_diag.h"
++stc_SCB_t uart_port;char uart_capture[32768];unsigned uart_capture_count;
++static ring_runtime_diagnostics_t sample;
++const ring_runtime_diagnostics_t*ring_runtime_diagnostics(void){return &sample;}
++#define CHECK(c) do{if(!(c)){fprintf(stderr,"FAIL entry UART:%d %s queue%u drop%lu\n",__LINE__,#c,ring_diag_count,(unsigned long)ring_diag_dropped);exit(1);}}while(0)
++static unsigned records(const char*prefix,unsigned columns)
++{
++ const char*p=uart_capture,*end,*q;unsigned count=0;
++ while((p=strstr(p,prefix))!=NULL){unsigned commas=0;p+=2;end=strstr(p,"\r\n");if(!end)break;
++  for(q=p;q<end;++q)if(*q==',')++commas;
++  CHECK(commas==columns);++count;p=end;
++ }return count;
++}
++static void poll(unsigned n)
++{
++ unsigned before=uart_capture_count;
++ sample.now_ms+=46;sample.control_dt_ms=46;sample.command_sequence+=2;
++ sample.frame_sequence=sample.entry_frame_sequence=sample.geometry_frame_sequence=sample.topology_frame=sample.mouth_frame=n;
++ sample.branch_ok=(uint8_t)(n&1u);sample.decision=(uint8_t)(1u+(n&1u));
++ uart_port.used=0;ring_uart_diag_poll(0,180,-180);
++ CHECK(uart_capture_count-before<=128u && ring_diag_count<=8u);
++}
++int main(void)
++{
++ unsigned i,before;
++ sample.phase=RING_ENTER;sample.active=1;sample.maneuver_stage=2;sample.force_active=1;sample.force_side=-1;
++ sample.force_target10=-1000;sample.force_rate10=-980;sample.final_turn10=-652;sample.force_reason=1;
++ sample.original_target10=1500;sample.final_target10=1324;sample.held_target10=1500;sample.speed_goal10=900;
++ sample.measured_forward10=-365;sample.pitch100=225;sample.speed_tilt100=-350;sample.left_pwm=-1234;sample.right_pwm=2345;
++ sample.diagnostic_valid=sample.entry_diagnostic_valid=sample.geometry_valid=sample.topology_valid=sample.mouth_valid=1;
++ sample.command_epoch=sample.diagnostic_epoch=sample.entry_diagnostic_epoch=sample.geometry_epoch=sample.topology_epoch=sample.mouth_epoch=1;
++ sample.control_version=sample.vision_version=RING_PAIR_VERSION;sample.pair_ok=1;
++ sample.candidate_detected=sample.candidate_allowed=1;sample.classification=2;
++ sample.entry_flags=8191;sample.hold_reject=63;sample.inner_rows=sample.associated_rows=120;
++ sample.lap_origin_mdeg=-2147483647;sample.lap_mdeg=2147483647;
++ for(i=0;i<50;++i)poll(i);CHECK(ring_diag_dropped==0);
++ uart_capture_count=0;
++ for(i=0;i<200;++i)poll(50+i);
++ uart_capture[uart_capture_count]=0;
++ CHECK(ring_diag_dropped==0 && ring_diag_count<=3);
++ CHECK(records("\r\nB,",11)>=5);
++ CHECK(records("\r\nK,",29)>=35 && records("\r\nJ,",22)>=25);
++ CHECK(records("\r\nE,",14)>=10 && records("\r\nH,",16)>=10);
++ printf("PASS: default K29 + R/D/E/G/H/J, %u bytes/9200ms, queue%u, drop%lu; K>=35, per-poll<=128 FIFO writes\n",uart_capture_count,ring_diag_count,(unsigned long)ring_diag_dropped);
++ /* A small/full FIFO loses telemetry instead of blocking or touching
++  * runtime control. Bounded queue and service still hold under pressure. */
++ before=ring_diag_dropped;fifo_capacity=16;uart_capture_count=0;
++ for(i=0;i<100;++i)poll(250+i);
++ CHECK(ring_diag_dropped>before && ring_diag_count<=8);
++ puts("PASS: constrained FIFO backpressure remains bounded and observable");return 0;
++}
+--- before/project\tests\test_ring_force.c
++++ after/project\tests\test_ring_force.c
+@@ -94,7 +94,7 @@
+  boot();command(1,RING_ENTER,1,0,3,0);
+  for(i=0;i<160;++i){ticks(0,46,1);command(1,RING_ENTER,i<6,0,3,.001f*i);uart_port.used=0;ring_uart_diag_poll(26,100,-100);}
+  uart_capture[uart_capture_count]=0;d=ring_runtime_diagnostics();(void)d;
+- CHECK(strstr(uart_capture,"#RING,30,"));CHECK(strstr(uart_capture,"#K,seq,ms,epoch,cmd,active,side,target10,rate10,out10,reason,age,drop"));
++ CHECK(strstr(uart_capture,"#RING,31,"));CHECK(strstr(uart_capture,"#K,seq,ms,epoch,cmd,active,side,target10,rate10,out10,reason,age,drop"));
+  CHECK(strstr(uart_capture,"\r\nK,"));
+  puts("PASS: force final-output/right-left contracts, rate feedback, locked direction, non-renewable time/yaw/travel, release, stale/stop/invalid requests, UART K");return 0;
+ }
+--- before/project\tests\test_ring_maneuver.c
++++ after/project\tests\test_ring_maneuver.c
+@@ -50,7 +50,7 @@
+ int main(void)
+ {
+  ring_maneuver_t s;int side,k;int32_t packed;
+- CHECK(RING_TIMED_ENTRY==1 && RING_PAIR_VERSION==30);
++ CHECK(RING_TIMED_ENTRY==1 && RING_PAIR_VERSION==31);
+  for(side=-1;side<=1;side+=2)route(side);
+  for(k=0;k<3;++k)interrupted(k);
+  ring_maneuver_begin(&s,0,1,0,0);s.armed=1;
+--- before/project\tests\test_ring_tangent_transport.c
++++ after/project\tests\test_ring_tangent_transport.c
+@@ -185,7 +185,7 @@
+     apply(1);
+     for(i=0;i<50u;++i) { ticks(1);apply(1);uart_port.used=0;ring_uart_diag_poll(0,100,100); }
+     uart_capture[uart_capture_count]=0;
+-    CHECK(strstr(uart_capture,"#RING,30,")!=NULL);
++    CHECK(strstr(uart_capture,"#RING,31,")!=NULL);
+     CHECK(strstr(uart_capture,"TRACK_MODE=1")!=NULL);
+     CHECK(strstr(uart_capture,"\r\nH,")!=NULL);
+     CHECK(strstr(uart_capture,",-1,2,0,0,108,51,-123456,45678,")!=NULL);
+--- before/project\tests\test_ring_uart_fifo.c
++++ after/project\tests\test_ring_uart_fifo.c
+@@ -35,6 +35,7 @@
+     ring_diag_topology_seq=ring_diag_topology_frame=ring_diag_topology_epoch=ring_diag_topology_last_ms=ring_diag_topology_key=0;
+     ring_diag_have_topology=0;
+     ring_diag_mouth_seq=ring_diag_mouth_frame=ring_diag_mouth_epoch=ring_diag_mouth_last_ms=0;
++    ring_diag_bias_seq=ring_diag_bias_last_ms=0;ring_diag_have_bias=0;
+     ring_diag_mouth_gate=0;ring_diag_have_mouth=0;ring_diag_have_pair=0;ring_diag_pair_last_key=0;ring_diag_image_sequence=ring_diag_image_epoch=ring_diag_ack_sequence=0;
+     sample.cap=-1;sample.island_near=-1;sample.raw_state=1;sample.output_state=1;
+     sample.near_x=sample.look_x=-1;
+@@ -70,7 +71,7 @@
+     reset_state();
+     for(i=0;i<100;++i)poll_frame(i);
+     uart_capture[uart_capture_count]=0;
+-    CHECK(strstr(uart_capture,"#RING,30,UART1,115200")!=NULL);
++    CHECK(strstr(uart_capture,"#RING,31,UART1,115200")!=NULL);
+     CHECK(strstr(uart_capture,"IMAGE=IPM")!=NULL);
+     CHECK(strstr(uart_capture,"YAW_SIGN=" RING_DIAG_STRINGIFY(RING_YAW_SIGN))!=NULL);
+     CHECK(strstr(uart_capture,"#D,seq,ms,epoch,cmd,frame,vdt,cand_det,cand_ok")!=NULL);
+@@ -138,7 +139,7 @@
+     sample.hold_turn10=123;sample.entry_turn10=-321;sample.path_age_ms=248;sample.lost_frames=5;
+     for(i=0;i<100u;++i)poll_frame(i);
+     uart_capture[uart_capture_count]=0;
+-    {unsigned complete=count_lines("\r\nE,",14u);CHECK(complete>=18u && complete<=19u && ring_diag_dropped==0u);}
++    {unsigned complete=count_lines("\r\nE,",14u);printf("E cadence count=%u drop=%lu\n",complete,(unsigned long)ring_diag_dropped);CHECK(complete>=18u && complete<=19u && ring_diag_dropped==0u);}
+     before=ring_diag_entry_seq;
+     sample.entry_frame_sequence=ring_diag_entry_frame;
+     for(i=0;i<20u;++i){sample.now_ms+=46u;uart_port.used=0;ring_uart_diag_poll(0,100,100);}
+@@ -256,7 +257,7 @@
+     uart_capture[uart_capture_count]=0;
+     CHECK(count_lines("\r\nJ,",22u)>20u && count_lines("\r\nE,",14u)>20u);
+     CHECK(count_lines("\r\nH,",16u)>20u && count_lines("\r\nD,",19u)>5u);
+-    CHECK(strstr(uart_capture,"#PAIR,30,30,1")!=NULL);
++    CHECK(strstr(uart_capture,"#PAIR,31,31,1")!=NULL);
+     printf("UART RDEGHJ pressure sample: %u bytes / 9200 ms, queue=%u, drop=%lu\n",
+         uart_capture_count,ring_diag_count,(unsigned long)ring_diag_dropped);
+     puts("PASS: bounded FIFO 16/64/128, R33/D19/E14/G14, fresh-frame cadence, E/G priority, bandwidth/backpressure and drops");
+--- before/project\tests\test_ring_uart_protocol.c
++++ after/project\tests\test_ring_uart_protocol.c
+@@ -135,9 +135,9 @@
+             CHECK(((value>>26)&7u)==(missed>7u?7u:missed));
+             CHECK(((value>>29)&3u)==reason && !(value&0x80000000u));++count;
+         }
+-        CHECK(RING_PAIR_VERSION==30u);
+-        CHECK(ring_command_version(ring_command_versioned_phase(2,64,RING_PAIR_VERSION))==30u);
+-        CHECK(ring_motion_version(ring_motion_operator_version(RING_OPERATOR_VALID,RING_PAIR_VERSION))==30u);
++        CHECK(RING_PAIR_VERSION==31u);
++        CHECK(ring_command_version(ring_command_versioned_phase(2,64,RING_PAIR_VERSION))==31u);
++        CHECK(ring_motion_version(ring_motion_operator_version(RING_OPERATOR_VALID,RING_PAIR_VERSION))==31u);
+     }
+     printf("PASS: v4 control and prior diagnostic packing preserved; v24 paired version and independent F-window/ready/path diagnostics, %u cases\n",count);
+     return 0;
+--- before/project\tests\test_ring_v31_exit.c
++++ after/project\tests\test_ring_v31_exit.c
+@@ -0,0 +1,173 @@
++/* v31 exit guards only. Prepared vision history is not a field-lap claim.
++ * The paired runtime portion uses integrated gyro and counts event beeps.
++ * Build with ring_runtime.c and ring_link.c; ring.c is included here. */
++#include "../code/ring.c"
++#include "ring_runtime.h"
++#include "ring_link.h"
++#include <stdio.h>
++#include <stdlib.h>
++
++#define CHECK(c) do { if (!(c)) { fprintf(stderr, "FAIL v31 exit:%d %s side%d ph%d lap%.3f src%u\n", __LINE__, #c, test_side, ring_result.phase, ring_result.lap_deg, ring_result.path_source); exit(1); } } while (0)
++static int test_side;
++static uint8_t test_pixels[RING_H][RING_W];
++static ring_motion_t test_motion;
++static uint32_t test_sequence, test_epoch;
++static unsigned test_beeps;
++static float test_speed, test_turn, test_revs;
++
++/* Ordinary road bends its image bearing away from the old entry turn.
++ * Both boundaries and the lane width remain visible over the whole image. */
++static void test_ordinary(int side)
++{
++    int x,y;
++    memset(test_pixels,0,sizeof(test_pixels));
++    for (y=0;y<RING_H;++y) {
++        int l=64+(117-y)/6;
++        for (x=l;x<l+60;++x)
++            test_pixels[y][side<0?x:RING_W-1-x]=255;
++    }
++}
++static void test_prepare(int side,float degrees,int shared)
++{
++    test_side=side;ring_init();test_ordinary(side);
++    test_motion=(ring_motion_t){100,side*degrees,2,1};
++    ring_result.phase=RING_CIRCLE;
++    ring_result.ring_side=(int8_t)side;ring_result.route=(int8_t)-side;
++    ring_result.committed=ring_result.left_entry=ring_result.lap_valid=1;
++    ring_result.lap_origin_yaw=0;
++    ring_result.approach_stage=(uint8_t)(shared?RING_TANGENT_SHARED:RING_TANGENT_LEFT);
++    ring_result.detected_events=1;ring_since=phase_since=100;
++    timed_started=1;tangent_lap_revs=1;
++    ring_observe_maneuver_feedback(3,(int16_t)(degrees*10));
++    CHECK((side==-1 && ring_result.route==1) || (side==1 && ring_result.route==-1));
++}
++static void test_vision_step(void)
++{
++    test_motion.now_ms+=20;test_motion.wheel_revs+=.02f;
++    ring_observe_frame_interval(20);ring_observe_track(1);
++    ring_update((const uint8_t(*)[RING_W])test_pixels,&test_motion);
++}
++static void test_vision_reject(int side,int kind)
++{
++    int i;
++    test_prepare(side,kind==0?180.f:kind==1?270.f:360.1f,1);
++    if (kind==2) {
++        /* A latched prior lap cannot authorize the opposite heading. */
++        tangent_lap(&test_motion);CHECK(lap_completed);
++        test_motion.yaw_deg=side*540.f;
++    }
++    for (i=0;i<35;++i) {
++        test_vision_step();
++        CHECK(!ring_result.exited_events);
++        CHECK(ring_result.phase!=RING_EXIT && ring_result.phase!=RING_RECOVER);
++    }
++}
++static void test_vision_exit(int side,int shared)
++{
++    int i,y;
++    test_prepare(side,360.1f,shared);
++    for (i=0;i<50 && !ring_result.exited_events;++i) {
++        test_vision_step();
++        if (ring_owns_path()) {
++            CHECK(ring_result.path_valid && ring_result.path_source==4);
++            CHECK(ring_result.steer_error*side<0);
++            /* A ring-edge normal must not replace this current through
++             * corridor while ordinary-road exit evidence accumulates. */
++            for (y=24;y<=117;++y) {
++                int centre=94+(117-y)/6;
++                if (side>0) centre=RING_W-1-centre;
++                CHECK(ring_result.mid[y]>=0);
++                CHECK(abs(ring_result.mid[y]-centre)<=3);
++                CHECK(test_pixels[y][ring_result.mid[y]]!=0);
++            }
++        }
++        if (i<11) CHECK(!ring_result.exited_events);
++    }
++    CHECK(ring_result.exited_events==1 && !ring_owns_path());
++    CHECK(!ring_result.stop && !ring_result.timed_entry && ring_speed_limit()==-1);
++    CHECK(ring_blend_error(-41)==-41 && ring_blend_error(0)==0 && ring_blend_error(23)==23);
++}
++static void test_tick(int raw,unsigned count,int standing)
++{
++    while (count--) if (ring_runtime_tick((int16_t)raw,(uint8_t)standing)==1) ++test_beeps;
++}
++static void test_apply(void)
++{
++    test_speed=100;test_turn=-33;
++    ring_runtime_observe_motion(100,0,0,0,0);
++    ring_runtime_apply(&test_speed,&test_turn,test_revs,1);
++}
++static void test_command(int side,int phase,unsigned exited)
++{
++    ring_packet_t p={{0}};
++    int owned=phase>=RING_APPROACH && phase<=RING_RECOVER;
++    p.word[RL_MAGIC]=RING_LINK_MAGIC;p.word[RL_EPOCH]=(int32_t)test_epoch;
++    p.word[RC_PHASE]=ring_command_versioned_phase(phase,0,RING_PAIR_VERSION);
++    p.word[RC_CAP]=ring_command_cap_turn(owned?(phase==RING_APPROACH?100:90):-1,360);
++    p.word[RC_DETECTED]=1;p.word[RC_EXITED]=(int32_t)exited;
++    p.word[RC_FAULT]=ring_command_diagnostics(0,1,0,0,1,0,1,0,80,-side);
++    if (phase==RING_APPROACH) p.word[RC_FAULT]=(int32_t)((uint32_t)p.word[RC_FAULT]|RING_COMMAND_FORCE_ENTRY);
++    if (owned) p.word[RC_FAULT]=(int32_t)((uint32_t)p.word[RC_FAULT]|RING_COMMAND_TIMED_ENTRY);
++    ring_link_write(ring_command_mailbox,&p,&test_sequence);test_apply();
++}
++static void test_runtime_boot(int side)
++{
++    unsigned i;
++    test_side=side;test_sequence=test_beeps=0;test_revs=0;
++    memset(ring_command_mailbox,0,RING_LINK_WORDS*sizeof(int32_t));
++    memset(ring_motion_mailbox,0,RING_LINK_WORDS*sizeof(int32_t));
++    ring_runtime_init(.1f);ring_runtime_set_operator(0,0);
++    test_tick(0,2200,0);ring_runtime_set_operator(1,0);
++    test_tick(0,1,1);test_apply();test_epoch=ring_runtime_diagnostics()->command_epoch;
++    test_command(side,RING_APPROACH,0);
++    for (i=0;i<RING_MANEUVER_DELAY_MS/20u+2u;++i) {
++        test_tick(0,20,1);test_revs+=.03f;test_command(side,RING_APPROACH,0);
++        if (ring_runtime_diagnostics()->maneuver_stage==2) break;
++    }
++    CHECK(ring_runtime_diagnostics()->maneuver_stage==2 && test_beeps==1);
++}
++static void test_runtime_advance(int side,unsigned ms)
++{
++    while (ms) {
++        unsigned n=ms>20u?20u:ms;
++        test_tick(side*1000,n,1);test_revs+=.0015f*n;
++        test_command(side,RING_ENTER,0);ms-=n;
++    }
++}
++static void test_runtime_reject(int side,int kind)
++{
++    uint32_t accepted;
++    const ring_runtime_diagnostics_t *d;
++    test_runtime_boot(side);
++    test_runtime_advance(side,kind==0?1800u:kind==1?2700u:3601u);
++    if (kind==2) test_runtime_advance(side,1799u);
++    d=ring_runtime_diagnostics();CHECK(d->maneuver_stage==3 && d->active);
++    accepted=d->command_sequence;
++    test_command(side,RING_EXIT,0);
++    CHECK(d->command_sequence==accepted && d->phase==RING_ENTER);
++    test_command(side,RING_COOLDOWN,1);
++    CHECK(d->command_sequence==accepted && d->active && !d->exited);
++    test_tick(0,100,1);
++    CHECK(test_beeps==1); /* Recognition only; rejected exit emits no beep. */
++}
++static void test_runtime_exit(int side)
++{
++    test_runtime_boot(side);test_runtime_advance(side,3601u);
++    CHECK(ring_runtime_diagnostics()->maneuver_stage==3);
++    test_command(side,RING_COOLDOWN,1);
++    CHECK(!ring_runtime_diagnostics()->active && ring_runtime_diagnostics()->exited==1);
++    CHECK(test_turn==-33);
++    test_tick(0,100,1);CHECK(test_beeps==2);
++}
++int main(void)
++{
++    int side,kind,shared;
++    CHECK(RING_EXIT_MIN_DEG==360.f && RING_LAP_EXIT_HEADING_TOL==15.f);
++    for (side=-1;side<=1;side+=2) {
++        for (kind=0;kind<3;++kind) {test_vision_reject(side,kind);test_runtime_reject(side,kind);}
++        for (shared=0;shared<=1;++shared) test_vision_exit(side,shared);
++        test_runtime_exit(side);
++    }
++    puts("PASS: v31 both sides,180/270 and past360-opposite heading reject exit/beep; full360 straight exit keeps current through corridor and restores ordinary steering;360/15deg guards retained");
++    return 0;
++}
+--- before/project\tests\test_ring_v31_motion.c
++++ after/project\tests\test_ring_v31_motion.c
+@@ -0,0 +1,81 @@
++/* Runtime-level entry regression. No motor or track dynamics claim. */
++#include "ring_runtime.h"
++#include "ring_link.h"
++#include "ring.h"
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <math.h>
++#define CHECK(c) do{if(!(c)){fprintf(stderr,"FAIL v31 motion:%d %s f%.2f t%.2f man%u\n",__LINE__,#c,speed,turn,ring_runtime_diagnostics()->maneuver_stage);exit(1);}}while(0)
++static float speed,turn,measured;static uint32_t seq,epoch;
++static void tick(int raw,unsigned n,int standing)
++{while(n--)(void)ring_runtime_tick((int16_t)raw,(uint8_t)standing);}
++static void apply(void)
++{speed=100;turn=17;ring_runtime_observe_motion(measured,0,0,0,0);
++ ring_runtime_apply(&speed,&turn,1,3);}
++static void command(int side,int phase)
++{
++ ring_packet_t p={{0}};p.word[RL_MAGIC]=RING_LINK_MAGIC;p.word[RL_EPOCH]=(int32_t)epoch;
++ p.word[RC_PHASE]=ring_command_versioned_phase(phase,0,RING_PAIR_VERSION);
++ p.word[RC_CAP]=ring_command_cap_turn(phase==RING_APPROACH?100:90,0);p.word[RC_DETECTED]=1;
++ p.word[RC_FAULT]=ring_command_diagnostics(0,1,0,0,1,0,1,0,80,-side);
++ p.word[RC_FAULT]=(int32_t)((uint32_t)p.word[RC_FAULT]|RING_COMMAND_TIMED_ENTRY);
++ if(phase==RING_APPROACH)p.word[RC_FAULT]=(int32_t)((uint32_t)p.word[RC_FAULT]|RING_COMMAND_FORCE_ENTRY);
++ ring_link_write(ring_command_mailbox,&p,&seq);apply();
++}
++static void boot(void)
++{
++ memset(ring_command_mailbox,0,32);memset(ring_motion_mailbox,0,32);seq=0;
++ ring_runtime_init(.1f);ring_runtime_set_operator(0,0);
++ /* The old one-second window would store this -130dps hand movement.
++  * Stable standby afterward must replace it before RUN freezes the zero. */
++ tick(20,999,0);tick(-1300,1001,0);tick(20,1000,0);
++ measured=100;apply();CHECK(ring_runtime_diagnostics()->yaw_calibrated);
++ CHECK(abs(ring_runtime_diagnostics()->yaw_bias_raw-20)<=1);
++ ring_runtime_set_operator(1,0);tick(20,10,1);apply();
++ epoch=ring_runtime_diagnostics()->command_epoch;
++ CHECK(abs(ring_runtime_diagnostics()->force_rate10)<=1);
++}
++static void motion(int side)
++{
++ unsigned i;const ring_runtime_diagnostics_t *d=ring_runtime_diagnostics();
++ boot();measured=0;command(side,RING_APPROACH);
++ for(i=0;i<40;++i){tick(20,50,1);command(side,RING_APPROACH);}
++ CHECK(d->maneuver_stage==1 && !d->force_active && d->force_reason==2);
++ measured=-20;tick(20,50,1);command(side,RING_APPROACH);
++ CHECK(d->maneuver_stage==1 && !d->force_active);
++ measured=100;tick(20,50,1);command(side,RING_APPROACH);
++ CHECK(d->maneuver_stage==2 && d->force_active && side*turn>0);
++ /* Full authority is preserved when the vehicle actually advances. */
++ tick(20,50,1);command(side,RING_ENTER);
++ CHECK(d->entry_turn_cap10==900 && side*turn>0 && speed>0);
++ measured=5;tick(20,50,1);command(side,RING_ENTER);
++ CHECK(fabsf(turn)<=5.001f && d->entry_turn_cap10==50 && speed>0);
++ measured=0;tick(20,50,1);command(side,RING_ENTER);
++ CHECK(turn==0 && speed>0 && d->force_reason==8);
++ measured=-50;tick(20,50,1);command(side,RING_ENTER);
++ CHECK(turn==0 && speed>0 && d->entry_turn_cap10==0);
++ measured=100;tick(20+side*1000,100,1);command(side,RING_ENTER);
++ CHECK(side*turn>0 && d->maneuver_stage==2);
++ for(i=0;i<7;++i){tick(20+side*1000,100,1);command(side,RING_ENTER);}
++ CHECK(d->maneuver_stage==3 && !d->force_active);
++ CHECK(d->yaw_bias_raw==20); /* a true turn never becomes a new zero */
++ tick(20,350,1);apply();CHECK(turn==17 && speed>0);
++}
++static void invalid_zero(void)
++{
++ unsigned i;const ring_runtime_diagnostics_t *d=ring_runtime_diagnostics();
++ memset(ring_command_mailbox,0,32);memset(ring_motion_mailbox,0,32);seq=0;
++ ring_runtime_init(.1f);ring_runtime_set_operator(0,0);tick(1500,3000,0);
++ ring_runtime_set_operator(1,0);measured=100;tick(20,1,1);apply();
++ epoch=d->command_epoch;CHECK(!d->yaw_calibrated);
++ for(i=0;i<40;++i){tick(20,50,1);command(-1,RING_APPROACH);}
++ CHECK(!d->active && !d->force_active && !d->maneuver_stage && turn==17 && speed==100);
++}
++int main(void)
++{
++ CHECK(RING_ENTRY_MIN_FORWARD_RPM>0 && RING_MANEUVER_TURN_DEG==75.f);
++ motion(-1);motion(1);invalid_zero();
++ puts("PASS: boot hand-motion bias corrected in standby; stationary/reverse cannot arm; full75 authority with forward motion; collapse suppresses axle spin without zero/negative forward request; both sides and uncalibrated isolation");
++ return 0;
++}
+--- before/project\tests\test_ring_yaw_bias.c
++++ after/project\tests\test_ring_yaw_bias.c
+@@ -0,0 +1,162 @@
++#include "ring_yaw_bias.h"
++#include <stdio.h>
++#include <stdlib.h>
++
++#define CHECK(c) do { if (!(c)) { \
++    fprintf(stderr, "FAIL yaw bias:%d %s\n", __LINE__, #c); exit(1); \
++} } while (0)
++#define NEAR(a,b) (fabsf((a) - (b)) < 0.01f)
++
++static void feed(ring_yaw_bias_t *s, uint32_t first, uint32_t last,
++    int16_t raw, int standing, int run)
++{
++    uint32_t now;
++    for (now = first; now <= last; ++now)
++        ring_yaw_bias_update(s, raw, now, standing, run);
++}
++
++static void startup_and_offset(void)
++{
++    ring_yaw_bias_t s;
++    ring_yaw_bias_init(&s, 0.1f);
++    feed(&s, 0, 999, 73, 0, 0);
++    CHECK(!s.ready && !s.samples && s.window_state == RING_YAW_BIAS_STARTUP);
++    feed(&s, 1000, 1249, 73, 0, 0);
++    CHECK(!s.ready);
++    feed(&s, 1250, 1499, 73, 0, 0);
++    CHECK(!s.ready);
++    feed(&s, 1500, 1500, 73, 0, 0);
++    CHECK(s.ready && NEAR(s.bias, 73.0f));
++    CHECK(NEAR(ring_yaw_bias_rate(&s, 73), 0.0f));
++    CHECK(s.accepted == 1 && s.updated_ms == 1500 && s.raw == 73);
++}
++
++static void implausible_constant_rotation(void)
++{
++    ring_yaw_bias_t s;
++    ring_yaw_bias_init(&s, 0.1f);
++    feed(&s, 0, 2000, 1000, 0, 1);
++    CHECK(!s.ready && s.accepted == 0);
++    CHECK(s.window_state == RING_YAW_BIAS_UNSTABLE);
++    feed(&s, 2001, 2500, 25, 0, 1);
++    CHECK(s.ready && NEAR(s.bias, 25.0f));
++}
++
++static void noisy_start_then_still(void)
++{
++    ring_yaw_bias_t s;
++    uint32_t now;
++    ring_yaw_bias_init(&s, 0.1f);
++    for (now = 0; now <= 2000; ++now)
++        ring_yaw_bias_update(&s, (int16_t)(now % 2 ? -100 : 100),
++            now, 0, 0);
++    CHECK(!s.ready && s.window_state == RING_YAW_BIAS_UNSTABLE);
++    feed(&s, 2001, 2500, 20, 0, 0);
++    CHECK(s.ready && NEAR(s.bias, 20.0f));
++}
++
++static void changing_means_need_consecutive_windows(void)
++{
++    ring_yaw_bias_t s;
++    ring_yaw_bias_init(&s, 0.1f);
++    feed(&s, 0, 1250, 0, 0, 0);
++    CHECK(!s.ready && s.previous_stable);
++    feed(&s, 1251, 1500, 20, 0, 0); /* individually stable, mean differs2dps */
++    CHECK(!s.ready && s.window_state == RING_YAW_BIAS_FIRST_STABLE);
++    feed(&s, 1501, 1750, 20, 0, 0);
++    CHECK(s.ready && NEAR(s.bias, 20.0f));
++}
++
++static void idle_recalibration(void)
++{
++    ring_yaw_bias_t s;
++    uint32_t now;
++    ring_yaw_bias_init(&s, 0.1f);
++    /* Z alone cannot reject a constant turn. Later genuine rest must replace
++     * this estimate before RUN, rather than latch a startup mistake forever. */
++    feed(&s, 0, 2000, 70, 0, 0);
++    CHECK(s.ready && NEAR(s.bias, 70.0f));
++    for (now = 2001; now <= 2500; ++now)
++        ring_yaw_bias_update(&s, (int16_t)(now % 2 ? -100 : 100),
++            now, 0, 0);
++    CHECK(s.ready && NEAR(s.bias, 70.0f));
++    feed(&s, 2501, 3000, -30, 0, 0);
++    CHECK(s.ready && NEAR(s.bias, -30.0f));
++    CHECK(NEAR(ring_yaw_bias_rate(&s, -30), 0.0f));
++}
++
++static void run_and_standing_freeze(void)
++{
++    ring_yaw_bias_t s;
++    unsigned accepted;
++    float heading = 0.0f;
++    uint32_t now;
++    ring_yaw_bias_init(&s, 0.1f);
++    feed(&s, 0, 2000, 10, 0, 0);
++    CHECK(s.ready);
++    accepted = s.accepted;
++    feed(&s, 2001, 3000, 400, 0, 1);
++    CHECK(s.window_state == RING_YAW_BIAS_RUN_FROZEN);
++    CHECK(NEAR(s.bias, 10.0f) && s.accepted == accepted);
++    for (now = 3001; now <= 4000; ++now) {
++        ring_yaw_bias_update(&s, 1010, now, 1, 1);
++        heading += ring_yaw_bias_rate(&s, 1010) * 0.001f;
++    }
++    CHECK(NEAR(heading, 100.0f));
++    for (now = 4001; now <= 5000; ++now) {
++        ring_yaw_bias_update(&s, -990, now, 1, 0);
++        heading += ring_yaw_bias_rate(&s, -990) * 0.001f;
++    }
++    CHECK(NEAR(heading, 0.0f));
++    CHECK(NEAR(s.bias, 10.0f) && s.accepted == accepted);
++    CHECK(s.window_state == RING_YAW_BIAS_STANDING_FROZEN);
++}
++
++static void early_run_and_unready_standing(void)
++{
++    ring_yaw_bias_t s;
++    ring_yaw_bias_init(&s, 0.1f);
++    feed(&s, 0, 2000, 10, 0, 1); /* preserve existing boot with RUN already set */
++    CHECK(s.ready && NEAR(s.bias, 10.0f));
++    CHECK(s.window_state == RING_YAW_BIAS_RUN_FROZEN);
++    ring_yaw_bias_init(&s, 0.1f);
++    feed(&s, 0, 3000, 1010, 1, 1);
++    CHECK(!s.ready && NEAR(ring_yaw_bias_rate(&s, 1010), 0.0f));
++}
++
++static void gaps_duplicates_invalid_and_wrap(void)
++{
++    ring_yaw_bias_t s;
++    uint32_t now, boot = UINT32_MAX - 1200u;
++    ring_yaw_bias_init(&s, 0.1f);
++    feed(&s, 0, 1250, 10, 0, 0);
++    ring_yaw_bias_update(&s, 10, 1300, 0, 0);
++    CHECK(!s.previous_stable && s.samples == 1);
++    ring_yaw_bias_update(&s, 10, 1300, 0, 0);
++    CHECK(s.samples == 1 && !s.ready);
++    s.scale = 0.0f;
++    ring_yaw_bias_update(&s, 10, 1301, 0, 0);
++    CHECK(!s.ready && !s.samples && s.window_state == RING_YAW_BIAS_INVALID_SCALE);
++    CHECK(ring_yaw_bias_rate(&s, 10) == 0.0f);
++    s.scale = NAN;
++    ring_yaw_bias_update(&s, 10, 1302, 0, 0);
++    CHECK(!s.ready && s.window_state == RING_YAW_BIAS_INVALID_SCALE);
++    ring_yaw_bias_init_at(&s, 0.1f, boot);
++    for (now = 0; now <= 1500; ++now)
++        ring_yaw_bias_update(&s, -15, boot + now, 0, 0);
++    CHECK(s.ready && NEAR(s.bias, -15.0f));
++}
++
++int main(void)
++{
++    startup_and_offset();
++    implausible_constant_rotation();
++    noisy_start_then_still();
++    changing_means_need_consecutive_windows();
++    idle_recalibration();
++    run_and_standing_freeze();
++    early_run_and_unready_standing();
++    gaps_duplicates_invalid_and_wrap();
++    puts("PASS: two stable250ms windows ready at1500ms; noisy/moving/implausible startup rejected; idle recalibration; RUN/standing freeze; true signed100dps preserved; mean continuity; diagnostics/gaps/duplicates/invalid scale/wrap");
++    return 0;
++}

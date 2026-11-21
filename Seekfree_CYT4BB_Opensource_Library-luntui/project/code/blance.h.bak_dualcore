@@ -1,0 +1,66 @@
+#ifndef _BLANCE_H_
+#define _BLANCE_H_
+
+#include "zf_common_headfile.h"
+#include "pid.h"
+
+// ---- 蜂鸣器 (上电延迟启动时提示音, 高电平响) ----
+#define BUZZER_PIN                  (P19_4)
+
+// ---- 舵机引脚 / 频率 / 角度映射 (四个腿舵机, 与主板上舵机插针对应) ----
+#define SERVO_MOTOR_PWM1            (TCPWM_CH31_P10_3)
+#define SERVO_MOTOR_PWM2            (TCPWM_CH25_P09_1)
+#define SERVO_MOTOR_PWM3            (TCPWM_CH24_P09_0)
+#define SERVO_MOTOR_PWM4            (TCPWM_CH30_P10_2)
+#define SERVO_MOTOR_L_MAX           (10 )               // 舵机活动范围 角度
+#define SERVO_MOTOR_R_MAX           (170)
+#define SERVO_MOTOR_FREQ            (50)                // 舵机 PWM 频率(Hz), 标准舵机 50Hz
+#define SERVO_MOTOR_DUTY(x)         ((float)PWM_DUTY_MAX/(1000.0f/(float)SERVO_MOTOR_FREQ)*(0.5f+(float)(x)/90.0f))
+
+// 角度环 (外环): 四元数俯仰角 s_angle.agy -> 目标角速度
+extern PIDController balance_angle;
+// 角速度环 (中环): 卡尔曼滤波角速度 imu660rb_gyro_y_l -> 目标轮速(RPM)
+extern PIDController balance_gyro;
+// 电机速度环 (内环): 目标轮速(RPM) -> 占空比, 左右各一个, 保证两轮同速
+extern PIDController balance_wheel_l;
+extern PIDController balance_wheel_r;
+
+// 目标俯仰角 (度), 一般为 0 (竖直站立)
+extern float balance_target_angle;
+// 机械零点 (度), 车体竖直站立时 s_angle.agy 的读数, 需标定
+extern float balance_mech_zero;
+// 角速度零点 (raw), 静止时 imu660rb_gyro_y_l 的读数, 需标定
+extern float balance_gyro_zero;
+
+// 位置环(最外环): 位置误差 -> 目标角度 (定点保持)
+extern PIDController balance_position;
+extern float balance_target_position;    // 位置环目标(定点), 用户可设 (轮转数, 相对起点)
+extern float balance_position_measured;  // 位置环反馈(轮速积分)
+extern float balance_position_out;       // 位置环输出(度)
+extern float balance_forward_speed;      // 前向速度(RPM)
+
+// 调试用: 各环输出
+extern float balance_angle_out;
+extern float balance_gyro_out;
+extern int   balance_left_duty;
+extern int   balance_right_duty;
+
+void balance_Init(float angle_p, float angle_i, float angle_d,
+                  float gyro_p,  float gyro_i,  float gyro_d,
+                  float wheel_p, float wheel_i, float wheel_d);
+void balance_star(void);
+void balance_position_Init(float p, float i, float d);   // 位置环(定点)初始化, P>0 才生效
+
+// 起立阶段标志: 0=舵机起立中, 1=已起立(进入轮子+舵机平衡)
+extern uint8 balance_stand_up_done;
+
+// ---- 舵机辅助平衡 (两轴: 俯仰 + 横滚, 用四个腿舵机把车身重心顶回竖直) ----
+extern float servo_roll_zero;       // 横滚零点(度): 车身水平时 s_angle.agx 的读数
+extern float servo_target_roll;     // 目标横滚角(度)
+extern float servo_pitch_out;       // 俯仰辅助输出(度), 调试
+extern float servo_roll_out;        // 横滚辅助输出(度), 调试
+extern float servo_angle[4];        // 四个舵机最终角度(度), 调试
+void servo_balance_Init(float pitch_p, float pitch_d, float roll_p, float roll_d);
+void servo_balance_star(void);
+
+#endif /* _BLANCE_H_ */

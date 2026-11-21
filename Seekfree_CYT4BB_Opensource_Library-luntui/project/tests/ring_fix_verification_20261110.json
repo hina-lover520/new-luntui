@@ -1,0 +1,90 @@
+{
+  "version": "ring-v6-field-fix",
+  "verifiedAt": "2026-11-10T08:09:14.365Z",
+  "project": "D:/CYT4BB7_Library-master/CYT4BB7_Library-master/Seekfree_luntui/Seekfree_CYT4BB_Opensource_Library-luntui",
+  "changedProduction": [
+    "project/code/ring.c",
+    "project/code/ring.h",
+    "project/code/ring_uart_diag.h"
+  ],
+  "protectedInputs": 541,
+  "ordinaryRpm": [
+    100,
+    85
+  ],
+  "input": "binarize(ipm_image)",
+  "hostSuites": 12,
+  "syntheticFramesPerRoute": 489,
+  "fieldFailureFrames": 463,
+  "isolationFrames": 456,
+  "protocolCases": 15957,
+  "diagnosticChecks": 267,
+  "oldCodeReproduction": "FAIL field line 35: ring_result.phase==RING_NORMAL ph=1 dir=-1 near=39 cc=4 rej=272 src=2 branch=0",
+  "builds": [
+    {
+      "core": 0,
+      "errors": 0,
+      "warnings": 0,
+      "mapPath": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\Debug_m7_0\\List\\cyt4bb7_cm_7_0.map",
+      "hex": {
+        "file": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.hex",
+        "bytes": 51724,
+        "records": 3236,
+        "sha256": "e7f91641cc8fa0d7d418620f75b59d09b2e1da5800d26b00fe33588a921e6038"
+      },
+      "out": {
+        "file": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.out",
+        "sha256": "d7517403024ccc1968d901ec664b1d8ecb37d8868b7ee675246831bb57cf6823"
+      }
+    },
+    {
+      "core": 1,
+      "errors": 0,
+      "warnings": 0,
+      "mapPath": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\Debug_m7_1\\List\\cyt4bb7_cm_7_1.map",
+      "hex": {
+        "file": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.hex",
+        "bytes": 43764,
+        "records": 2739,
+        "sha256": "88cb018191e47e2c62bd4f895edb86ad708836d3ec9afe6d131f0cad6f2220ee"
+      },
+      "out": {
+        "file": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.out",
+        "sha256": "19410ebdf210c4753645afab3107dc4ab950c266ac1552b9d5ff282228529078"
+      }
+    }
+  ],
+  "backup": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\_backup_before_ring_fix_20261110",
+  "firmwarePackaged": false,
+  "flashed": false,
+  "realVehicleValidated": false,
+  "monitor": {
+    "port": "COM9",
+    "baud": 115200,
+    "open": true,
+    "pid": 35228,
+    "lastHeader": "#RING,5,UART1,115200,8N1,TX=P04_1,RX=P04_0,CONTROL=4",
+    "lastReceiveAt": "2026-11-10T15:37:33.7645763+08:00",
+    "serialWrites": 0
+  },
+  "sourceHashes": [
+    {
+      "file": "project/code/ring.c",
+      "sha256": "62468bf4f7130f8a0ae97137534d51cff9cdf734c362f00d625a3c9ac905b128"
+    },
+    {
+      "file": "project/code/ring.h",
+      "sha256": "124d4256833cb48f78404cc798f5319a500624e87864bdf47e7b0b0496e2c2fa"
+    },
+    {
+      "file": "project/code/ring_uart_diag.h",
+      "sha256": "c85bead1a13bc4c379f15d0d54afaee7903d1ba03905b606a18d6d3c1aa1565f"
+    }
+  ],
+  "limitations": [
+    "Synthetic pixel geometry is not real-frame replay.",
+    "Cold tangent-only view is ambiguous and does not independently acquire a ring.",
+    "Pixel normal offsets rely on current IPM calibration; no camera calibration was changed.",
+    "Vehicle processing timing and successful real-track lap remain unverified."
+  ]
+}

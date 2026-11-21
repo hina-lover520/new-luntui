@@ -1,0 +1,78 @@
+{
+  "version": 34,
+  "target": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui",
+  "backup": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\_backup_before_v34_20261120_200217",
+  "host_groups": 63,
+  "protected_unchanged": 36,
+  "existing_ring_definitions_unchanged": 91,
+  "builds": {
+    "0": {
+      "errors": 0,
+      "warnings": 3,
+      "warning_lines": [
+        "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\find.c(41) : Warning[Pe177]: variable \"g_vleft\" was declared but never referenced",
+        "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\find.c(42) : Warning[Pe177]: variable \"g_vright\" was declared but never referenced",
+        "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\flycontrol.c(84) : Warning[Pe177]: variable \"yyy\" was declared but never referenced"
+      ],
+      "products": {
+        "hex": {
+          "path": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.hex",
+          "bytes": 253230,
+          "sha256": "58c716440d39e9615e2a2b9783b6cab0835b37b376a026cae342dd1fb48534da",
+          "modified": "2026-11-20T20:03:41.486865",
+          "verified_ihex_data_bytes": 90012
+        },
+        "out": {
+          "path": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_0\\Exe\\cyt4bb7_cm_7_0.out",
+          "bytes": 2105764,
+          "sha256": "42bd6524fdd1ba2f625326113d6572d830e4cf401215e570c3099c0e14fcf164",
+          "modified": "2026-11-20T20:03:41.419624"
+        }
+      }
+    },
+    "1": {
+      "errors": 0,
+      "warnings": 9,
+      "warning_lines": [
+        "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\flycontrol.c(84) : Warning[Pe177]: variable \"yyy\" was declared but never referenced",
+        "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\find.c(41) : Warning[Pe177]: variable \"g_vleft\" was declared but never referenced",
+        "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\find.c(42) : Warning[Pe177]: variable \"g_vright\" was declared but never referenced",
+        "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ztjx.c(38) : Warning[Pe177]: variable \"gyro_offset_roll\" was declared but never referenced",
+        "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ztjx.c(39) : Warning[Pe177]: variable \"gyro_offset_pitch\" was declared but never referenced",
+        "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ztjx.c(40) : Warning[Pe177]: variable \"gyro_offset_yaw\" was declared but never referenced",
+        "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ztjx.c(98) : Warning[Pe177]: variable \"imu660rb_acc_x_l\" was declared but never referenced",
+        "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ztjx.c(99) : Warning[Pe177]: variable \"imu660rb_acc_y_l\" was declared but never referenced",
+        "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ztjx.c(100) : Warning[Pe177]: variable \"imu660rb_acc_z_l\" was declared but never referenced"
+      ],
+      "products": {
+        "hex": {
+          "path": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.hex",
+          "bytes": 179466,
+          "sha256": "5986c30ee95c06ab3de8e35913f955f55761457014168e42e6c4ed197c02ca3e",
+          "modified": "2026-11-20T20:05:30.114305",
+          "verified_ihex_data_bytes": 63792
+        },
+        "out": {
+          "path": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\iar\\project_config\\Debug_m7_1\\Exe\\cyt4bb7_cm_7_1.out",
+          "bytes": 2145104,
+          "sha256": "c9fa4f1e32e1a6583e91fddddf812df704134470fd94d2bf15bb263b8fdef991",
+          "modified": "2026-11-20T20:05:30.061280"
+        }
+      }
+    }
+  },
+  "readme": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\readme.md",
+  "readme_sha256": "5655d77e9aaef638ab6792f2e6fed783b73ab497f7c6cbc8da412b67259ca676",
+  "ordinary_speeds_preserved": {
+    "small_rpm": 180,
+    "large_rpm": 145
+  },
+  "entry_preserved": {
+    "delay_ms": 1400,
+    "turn_deg": 75,
+    "reentry_ms": 15000
+  },
+  "flashed": false,
+  "firmware_package_created": false,
+  "field_validation": "pending; captured v33 failures and host regressions are not a v34 field success"
+}

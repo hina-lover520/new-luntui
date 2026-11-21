@@ -1,0 +1,7 @@
+{
+  "file": "project/user/main_cm7_1.c",
+  "reference_sha256": "09b87b0dd707d8320871643e5365cd2435bc468c9dbb28c3fccb7677da508ce4",
+  "preserved_sha256": "b750a027c9747dc1f1e9ab16a07d4d5d6fd14ca07f2564718101941d81104395",
+  "raw_sha256": "66ee74ff948b4aceb3fb1d34adae88d0aa3bcabd89f3282cd68899cbb3334c4f",
+  "details": "Already local before this turn: LINE_FOLLOW_FWD_SPEED50,FWD_SPEED_SMALL120,FWD_SPEED_LARGE105. Keep user tune byte for byte; normalize only the previously installed read-only motion hook. No ordinary controller/main edit this turn."
+}

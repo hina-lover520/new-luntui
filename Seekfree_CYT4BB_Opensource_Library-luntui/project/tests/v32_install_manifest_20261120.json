@@ -1,0 +1,97 @@
+{
+  "created": "20261120_171422",
+  "target": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui",
+  "backup": "D:\\CYT4BB7_Library-master\\CYT4BB7_Library-master\\Seekfree_luntui - fuben\\Seekfree_CYT4BB_Opensource_Library-luntui\\project\\_backup_before_v32_20261120_171422",
+  "files": {
+    "project/code/ring.c": {
+      "before": "75321398944d4a69aec65ea8b5de9a823df8c89057c265de8784014cb7f171bc",
+      "after": "a18ed4c2a8c66ad0a58d5019efc8df714f2ed0e28a3c2a3559aba9c4fba2ab7c"
+    },
+    "project/code/ring_link.h": {
+      "before": "aa9b153b5b0b21e9b3ab39274509be5976b33d6646a2de4e96031c5c2b29e843",
+      "after": "2d623d527bc78f99cbbfb7bd4fdb14769fe9765e65f29f4f168f2c7a21675690"
+    },
+    "project/code/ring_maneuver.h": {
+      "before": "d93fd849791ca313e084bacd28aea34b11882339b13cc4dd1e1b8d9aba3d63c7",
+      "after": "b1a128793f8b53856dbf40d5c0b914e47bb701efe09a13b845977c5f76c8d13e"
+    },
+    "project/code/ring_uart_diag.h": {
+      "before": "903848312ce1704a54c8e0dffaeabde7e3e61fe3fd9ddf441939f3be60f5e98f",
+      "after": "457871a2b47549b9d5921d1b581b770fb789826bdbb450e6e1bf4510151cde9e"
+    },
+    "project/code/ring_vision.c": {
+      "before": "26fad81cd6c35071257d5faffbc2e75a2281f35bd635fbf7f3b28da3a8b9d209",
+      "after": "c5953111e4f43eb01eef5c4f9603b1824fd1bf7770af4343b0d14e41aab00a9e"
+    },
+    "project/tests/run_ring_tests.ps1": {
+      "before": "02c1a008f4199f60b9fd4c7ecca9232e2331c55dcab6cdf0ccc38f2cdb0fd3b4",
+      "after": "8962884f1e2938b7612b9229ec351d9c00d41aaa445a2eadb8c0fe4430e98169"
+    },
+    "project/tests/verify_v29_isolation.cjs": {
+      "before": "7742bb99e62ce0f315bbc5d877e9a9b9bd438ddf9993f1ee62a167816bbd28d9",
+      "after": "ea511262161282c0ac1195eaf3e291b5cc7291deb17735690269a7b918109a6f"
+    },
+    "project/tests/v32_preserved_inputs.json": {
+      "before": null,
+      "after": "0d5f7475eb6935b64acdc37420bbae6fa175acf38255a5694fd271443686d54f"
+    },
+    "project/tests/test_ring_uart_protocol.c": {
+      "before": "1a5b7a572b85ea99e4477830f911db54eb0fc03b7939eeb44775cfdf97bf2511",
+      "after": "1c1ec9274086050500d8afd595080c19d29f18455d9b21959ab9f2db15985498"
+    },
+    "project/tests/test_ring_uart_fifo.c": {
+      "before": "218760764053db85cbcc1695c98412d65572632c249f34c4c8f8faa5b9fef0ff",
+      "after": "9d499c3ff403dd35fa840e7184640268ad4993bbf7f741b51fe5151bd3518b55"
+    },
+    "project/tests/test_ring_diag_isolation.c": {
+      "before": "fa1d70380d0e7cd39293d70b71206d525da1194b73f2d974009c6544a1b90a1d",
+      "after": "8a90d2ebd2e0141fb0d7fa6b06e6ce97b50ccd002a332398ad6c766eff8e37c2"
+    },
+    "project/tests/test_ring_maneuver.c": {
+      "before": "9f2c47137653562a0db650fed50cee8b02cdbb1e4f460b442d062364f7ccef7a",
+      "after": "e37be595a22b6ec930420b151dc46d26676b9e7c2e3380064590d3b26de7f869"
+    },
+    "project/tests/test_ring_timed_integration.c": {
+      "before": "26e7db880bae11918b47330510ef8888125fb975ace9e42a0b62d50ab50aa1e3",
+      "after": "41f634ae2316f43be241fd1dfeba3f37234f7f0ab6bf4a9c6f2e08d5c0bea39f"
+    },
+    "project/tests/test_ring_entry_follow.c": {
+      "before": "9ae22f796bf564969200b46ec0e023102d309b23967f45e0968edede1a1db76c",
+      "after": "71902780a42c3edbd2aab44edc54d3e83a7201cc96a45984c0a913bac61e5f62"
+    },
+    "project/tests/test_ring_normal_path.c": {
+      "before": "e41ad634556bbf457406fd97458bf346db54d61f9ecd2b745cdfbb109e993122",
+      "after": "31dc31cd91a0720ce05bb1a827f2fca9f11df9a1e13aa3780ac12ec879ca92b6"
+    },
+    "project/tests/test_ring_tangent_transport.c": {
+      "before": "2e2f48395d06f4c03c935c1ad9f24b323a68189b0839e1150aa57688ed7918c0",
+      "after": "01ed556aac14882d76b0a9b3d129a1b11b0d3f36f1a80855e9057aa2e18f5e63"
+    },
+    "project/tests/test_ring_entry_speed.c": {
+      "before": "2df987de9630040c5d4d86d545adf851d44d360e4974f2f638c1005dd01b1458",
+      "after": "43170852b6605274daa3113185041af4f5f4d76b8d7236925114b0afc7e5ceaa"
+    },
+    "project/tests/test_ring_force.c": {
+      "before": "20f96f072ca840b3c3b29d0f39e3bba14f91ac4b7c8d6e6f145868aeb24cc539",
+      "after": "6d8e7068d7b52a3af3a0538d8904ee06fb1c6722c40493b7b210607469a5c3b0"
+    },
+    "project/tests/test_ring_v32_paths.c": {
+      "before": null,
+      "after": "3b9a93053513183cb93de8c8ca767a4799ec0b4383f9907708f1185ebbd44ef9"
+    },
+    "project/tests/test_ring_v32_handover.c": {
+      "before": null,
+      "after": "067a439997b7abcbc59d087d991904f070f2d54abb67baf2e3658f9e2d1bd85d"
+    },
+    "project/tests/fixtures/v31_paths/v31_path_fixtures.h": {
+      "before": null,
+      "after": "a9587b29c8d3e73764b21443d9bd9e5842cd8252cc971133d1b5671d4d0ddc86"
+    },
+    "project/tests/fixtures/v31_paths/metadata.json": {
+      "before": null,
+      "after": "fa1e4b692a43059ac7b64e2cadde00af052b052db22e91822ae833cf5784c7c2"
+    }
+  },
+  "readme_before": "ae18f0df820ed1a3c0644fca759f987f7a3755ae4f6c07310964c6a9488e05e2",
+  "protected_count": 36
+}

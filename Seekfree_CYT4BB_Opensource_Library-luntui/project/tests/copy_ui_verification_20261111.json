@@ -1,0 +1,183 @@
+{
+  "date": "2026-11-11",
+  "target": "D:/CYT4BB7_Library-master/CYT4BB7_Library-master/Seekfree_luntui - fuben/Seekfree_CYT4BB_Opensource_Library-luntui",
+  "host_tests": {
+    "groups": 15,
+    "result": "PASS",
+    "ordinary_unchanged_inputs": 579,
+    "control_pipeline": "Original core1 algorithm and IMU ISR work byte-identical after removing requested enable/UI wiring; core0 processing and publication pipeline byte-identical",
+    "log": "host_tests_copy_ui_20261111.log",
+    "after_write": "PASS",
+    "log_sha256": "edb64114e7dbdb7aa2859959f7950363979833b44750e641a7d017a787ff214f"
+  },
+  "iar_builds": [
+    {
+      "core": 0,
+      "result": "PASS",
+      "errors": 0,
+      "warnings": 3,
+      "warning_origin": "Existing unused variables in unchanged find.c/flycontrol.c/ztjx.c",
+      "log": "project/tests/build_copy_ui_cm7_0.log",
+      "shared_memory_addresses": "PASS",
+      "outputs": [
+        {
+          "file": "project/iar/project_config/Debug_m7_0/Exe/cyt4bb7_cm_7_0.out",
+          "bytes": 1832204,
+          "sha256": "dbc54ba4ea1ec1c0b2486a56358931bd8014adebcf10f0fe63b0008373d96acf"
+        },
+        {
+          "file": "project/iar/project_config/Debug_m7_0/Exe/cyt4bb7_cm_7_0.hex",
+          "bytes": 150838,
+          "sha256": "cd85f8a4178de4e66ed95fb98e69842c9d507e58b5a6b7db3f599f4d1b8c0e87",
+          "records": 3354
+        }
+      ]
+    },
+    {
+      "core": 1,
+      "result": "PASS",
+      "errors": 0,
+      "warnings": 9,
+      "warning_origin": "Existing unused variables in unchanged find.c/flycontrol.c/ztjx.c",
+      "log": "project/tests/build_copy_ui_cm7_1.log",
+      "shared_memory_addresses": "PASS",
+      "outputs": [
+        {
+          "file": "project/iar/project_config/Debug_m7_1/Exe/cyt4bb7_cm_7_1.out",
+          "bytes": 1976268,
+          "sha256": "c4cd139e41c0b500291a9ce97ba9b2732e50a87c62e628e4dbf5c24d3ff8403d"
+        },
+        {
+          "file": "project/iar/project_config/Debug_m7_1/Exe/cyt4bb7_cm_7_1.hex",
+          "bytes": 125217,
+          "sha256": "f0c7e3ffaf1045a38e753143b96b51c688eff2794685c364c866471dedee5fc4",
+          "records": 2785
+        }
+      ]
+    }
+  ],
+  "hardware_validation": "Not flashed; hardware keys, display, parked buzzer and real track remain untested",
+  "files": [
+    {
+      "file": "readme.md",
+      "before": "b515c3f05c20c6ce3eec75ebdb9bfeb447e1b9c1ce4eb63b67b06d86aadf3e58",
+      "after": "02331dc9730750e442ff10c3b55376c2d1abc2d89d25597598d31afdcf07ce64"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring.c",
+      "before": "62468bf4f7130f8a0ae97137534d51cff9cdf734c362f00d625a3c9ac905b128",
+      "after": "30da229e8ded97199694075f44e4bac557b983f0388eeefb14240ebb8153c09a"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring_link.h",
+      "before": "8b4af1b6bbbdb937b4595ceafa53adba8530b7fb519dd7b4e9bc39a6ab17e866",
+      "after": "a670c09aca54ddcf9d44b406a6f76926ee749190d4771b775ae0fbe70f23e14a"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring_runtime.c",
+      "before": "b88bf06470e1a8e7499047e3656760e77a47233e791858d58f64b1ad70053f65",
+      "after": "40756caff01b083a60bfc9bf09efdb77111f877339b2d55746c5cce0bade0631"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring_runtime.h",
+      "before": "b13e6a9cf9864fe46c8466ab263a343e5614bac01e8ca10394ff13df841f16dc",
+      "after": "a2d0ff5b9c419be732a659b049e166b1c716f152a8e0ddda028b71b9b5870cdc"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring_uart_diag.h",
+      "before": "c85bead1a13bc4c379f15d0d54afaee7903d1ba03905b606a18d6d3c1aa1565f",
+      "after": "d735f3b7d8b2ff85efc5e16b3beac7d8507124b95b841e0722e12938e9a294a2"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring_vision.c",
+      "before": "c1cbe096783528d87473bfbe0cf7050f14183960fc2e64033bd343a0a13668dd",
+      "after": "e97a73e6fd7ca3b8a79a41ea103a00279a863133a732263c81c1a30376d57108"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\ring_vision.h",
+      "before": "a513d81f235bc2f59fdd6dcccb91f1d95fa475018fc8490061a5c60a8fad07f5",
+      "after": "1db0e1f63cb1da12ca8029c39eae003d417cd16d9a83ff57cee6d146078ccb4d"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\run_ring_tests.ps1",
+      "before": "407ead5812c13bf93eab93762bf4d9c2b776d50e72df8e663a442da7f46d3239",
+      "after": "4b198ac754c198b8f46be8765183ed251dbb1294a61b231a45c969244a312993"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring.c",
+      "before": "047a8808332bb82f8a8ba938779ebc96b6bbe9c4d60a80d423122cf210d0ad46",
+      "after": "1083e053df1bc9bee3ab03a920c88bd222f4a26c42fcf81b7a11e6c21a203d52"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_diag_isolation.c",
+      "before": "156c80dbdfce43bc3ed4e1360a77114a570c9a66c1d36e8de4823122f7c79f06",
+      "after": "02d4ca95ed364e6380d09ed8b1defc153d8ce06366be9ef57fa0880caaa81e38"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_integration.c",
+      "before": "6e3e274cf32ff07c70c892db27385112733f7d1bb8b2aa1a4f88b30732412745",
+      "after": "2f069e7ce540314585f2532f1d298e2b167bb2d4dda832a7a555a2bfdba335f5"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_isolation.c",
+      "before": "7a658af52ee7ee9a96e449d6ee7b377edee0ff61e498457f6414679c3a04e599",
+      "after": "288605db4f87922b2ab0b199cc92bcfbb35db942bbf16b8b616765883b4e56da"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_uart_fifo.c",
+      "before": "d911d5328d0a25771cee69a87f73b0ae1996da8d4db656d5648560d7e3f95ff9",
+      "after": "b6074072b7e11534150411bb68fe8882079ce9d614bc3edc8922b7212b0d35a9"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\user\\cm7_1_isr.c",
+      "before": "016bae657f6f39e747efa042b06df7caf3b6a825bb0e82624eefdf90f6aa00d1",
+      "after": "526b66797244182487ae38d8d3f2bf202dc6381ce6ad984d28db9b7340e5205f"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\user\\main_cm7_0.c",
+      "before": "05602803a9ccfddcf813d0e5f2f83fd5c675510959b2f7a8ab56d295c0144317",
+      "after": "2d99ffe87db8d30236e131d861ec6fc2f5566d3a9ee2038a8997a985435f0af5"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\user\\main_cm7_1.c",
+      "before": "3a7bbac74fee0df19681e01489d6c3b73d52896b394d8d33e45bb96caa8ca0b7",
+      "after": "51bc4471396af5aa90164c1b96704671f2c53d0559fcbbe6a4bb65b344468e8e"
+    },
+    {
+      "file": "uart1_ring_diagnostics.md",
+      "before": "62cf9513fbf286bf5bd0926c0135331f37f4ec1c6fa3651a466fef329fa9827b",
+      "after": "674f93e1086bfba14574cc91a3219674a0c0988643a7eac1b6672cd4881458bb"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\code\\run_buttons.h",
+      "before": null,
+      "after": "520e225dd0754f8e94a4071a7e4adfd466aaed7f9d90d0bfcb5d567b6b09e591"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_run_buttons.c",
+      "before": null,
+      "after": "a327ee4256e05a3d28dd058be73859d45a20e37e8829579894834a158f68f259"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_preview.c",
+      "before": null,
+      "after": "239fcf18846c36d1b2a9068e3f39e368bd31f2a58a303ba60855ce1488d68f30"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\test_ring_standby_beep.c",
+      "before": null,
+      "after": "85f823eba05cb97ba988900eb458349fe4b17e5631ca316cf562e238ddee4411"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\copy_ui_baseline_20261111.json",
+      "before": null,
+      "after": "9e8cb686c83fb31065b611232c756702377b75ca0cb5345263656a6da00b2e5f"
+    },
+    {
+      "file": "Seekfree_CYT4BB_Opensource_Library-luntui\\project\\tests\\verify_copy_ui_isolation.cjs",
+      "before": null,
+      "after": "a1bca9e30cc08c6950c9fab12b2c0bc47c2a42c598fb816bdfe0f8095fbae4d5"
+    }
+  ],
+  "primary_project": "Modified production counterparts still match pre-edit hashes in original primary project"
+}

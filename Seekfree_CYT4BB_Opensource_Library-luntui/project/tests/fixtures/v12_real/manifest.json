@@ -1,0 +1,90 @@
+[
+  {
+    "file": "image_5.bin",
+    "bytes": 2820,
+    "sha256": "ab368350c775a23030a25baf4cd44ee0048204226c1e5d953d4d752a3b3d871d",
+    "crc32": 1271433325,
+    "source": "capture_20261112_200338_598_781e48_boot_001_epoch_1_image_5_reason_2.bin",
+    "frame": 216,
+    "flags": 16712210,
+    "near_row": 108,
+    "far_row": -1
+  },
+  {
+    "file": "image_6.bin",
+    "bytes": 2820,
+    "sha256": "22e4cc161becc9331413a03fcbe332207f655be97ffcf20e91fb8f9bad59ebbd",
+    "crc32": 3627003665,
+    "source": "capture_20261112_200338_598_781e48_boot_001_epoch_1_image_6_reason_1.bin",
+    "frame": 400,
+    "flags": 67178769,
+    "near_row": 95,
+    "far_row": -1
+  },
+  {
+    "file": "image_7.bin",
+    "bytes": 2820,
+    "sha256": "0289f7129c8e8271fc94fd0a26223ba65ad6a3f35169fd8b851cdee915a4fd49",
+    "crc32": 312265816,
+    "source": "capture_20261112_200338_598_781e48_boot_001_epoch_1_image_7_reason_2.bin",
+    "frame": 414,
+    "flags": 66066,
+    "near_row": 108,
+    "far_row": -1
+  },
+  {
+    "file": "image_9.bin",
+    "bytes": 2820,
+    "sha256": "4e2bebcf1005aa27856680f8db7b4cec16647c096ba30fed8d35e290a13add5d",
+    "crc32": 2147060907,
+    "source": "capture_20261112_200338_598_781e48_boot_001_epoch_1_image_9_reason_1.bin",
+    "frame": 1276,
+    "flags": 67178769,
+    "near_row": 88,
+    "far_row": -1
+  },
+  {
+    "file": "image_10.bin",
+    "bytes": 2820,
+    "sha256": "ca299d1d19709baba1903184398da7b7a1f04f3ed1cb768445da279adc47e62a",
+    "crc32": 3947681586,
+    "source": "capture_20261112_200338_598_781e48_boot_001_epoch_1_image_10_reason_2.bin",
+    "frame": 1331,
+    "flags": 66066,
+    "near_row": 108,
+    "far_row": -1
+  },
+  {
+    "file": "image_105.bin",
+    "bytes": 2820,
+    "sha256": "770308f7fdd2917426906cc06d4864748815faca299ed096d12705905494b8f0",
+    "crc32": 1704324264,
+    "source": "capture_20261112_205610_243_77c603_boot_001_epoch_1_image_1_reason_1.bin",
+    "frame": 321,
+    "flags": 83824913,
+    "near_row": 81,
+    "far_row": -1
+  },
+  {
+    "file": "image_111.bin",
+    "bytes": 2820,
+    "sha256": "45d3053d10e38b18429096f02713280c290836a8d48484b74fbb5d28285f585b",
+    "crc32": 3945351821,
+    "source": "capture_20261112_205708_407_850f34_boot_001_epoch_1_image_1_reason_1.bin",
+    "frame": 156,
+    "flags": 67178769,
+    "near_row": 94,
+    "far_row": -1
+  },
+  {
+    "file": "image_112.bin",
+    "bytes": 2820,
+    "sha256": "adb98c65ec66a2e3edc07a9ee2a8b3e010c31756dfa4c378fb162bf335e77353",
+    "crc32": 1294611206,
+    "source": "capture_20261112_205708_407_850f34_boot_001_epoch_1_image_2_reason_2.bin",
+    "frame": 162,
+    "flags": 66066,
+    "near_row": 108,
+    "far_row": -1
+  }
+]

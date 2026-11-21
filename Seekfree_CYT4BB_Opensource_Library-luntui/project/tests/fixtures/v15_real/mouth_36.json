@@ -1,0 +1,17 @@
+{
+  "epoch": 1,
+  "id": 36,
+  "frame": 8659,
+  "cmd": 17766,
+  "ms": 389120,
+  "flags": 16712210,
+  "yaw10": 50309,
+  "lap10": 0,
+  "wheel_mrev": 667621,
+  "crc32": 79719106,
+  "capture_drop": 0,
+  "near_row": 117,
+  "far_row": 33,
+  "cv": 15,
+  "vv": 15
+}

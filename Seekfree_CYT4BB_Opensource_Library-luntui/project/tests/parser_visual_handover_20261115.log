@@ -1,0 +1,1 @@
+PASS: v28 visual-follow K29/J28, zero angular target after75, negative path output accepted; compatible J27/J26 and K29 held/goal/measured/pitch/tilt/PWM/motion-age; compatible K21/K17/K12 and J25/J24, old telemetry/images/CRC/PNG; serialOpens=0 serialWrites=0

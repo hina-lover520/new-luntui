@@ -1,0 +1,19 @@
+
+     IAR Command Line Build Utility V9.2.2.10770
+     Copyright 2002-2023 IAR Systems AB.
+
+
+cyt4bb7_cm_7_1 - Debug
+Reading project nodes...
+
+ring_link.c
+ring_runtime.c
+cm7_1_isr.c
+main_cm7_1.c
+cyt4bb7_cm_7_1.out
+cyt4bb7_cm_7_1.hex
+
+Total number of errors: 0
+Total number of warnings: 0
+Build succeeded
+
